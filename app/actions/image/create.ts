@@ -189,6 +189,10 @@ export const generateImageAction = async ({
         ? downloadUrl.publicUrl
         : `data:${image.mimeType};base64,${Buffer.from(image.uint8Array).toString('base64')}`;
 
+    if (!database) {
+      throw new Error('Database not initialized');
+    }
+
     const project = await database.query.projects.findFirst({
       where: eq(projects.id, projectId),
     });

@@ -33,6 +33,8 @@ export const ReplicateModels = {
   'minimax:speech-02-turbo': 'minimax/speech-02-turbo',
   'minimax:speech-02-hd': 'minimax/speech-02-hd',
   'openai:whisper': 'openai/whisper',
+  'whisperx:base': 'alireza0/whisperx',
+  'whisperx:large': 'alireza0/whisperx-large-v3',
 
   // 📝 Text
   'openai:gpt-4o-mini': 'openai/gpt-4o-mini',

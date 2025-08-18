@@ -2,20 +2,20 @@ import { hume } from '@ai-sdk/hume';
 import { lmnt } from '@ai-sdk/lmnt';
 import { openai } from '@ai-sdk/openai';
 import type { SpeechModel } from 'ai';
-import { type TersaModel, type TersaProvider, providers } from '../providers';
+import { type BerrysModel, type BerrysProvider, providers } from '../providers';
 
 const million = 1000000;
 const thousand = 1000;
 
-type TersaSpeechModel = TersaModel & {
-  providers: (TersaProvider & {
+type BerrysSpeechModel = BerrysModel & {
+  providers: (BerrysProvider & {
     model: SpeechModel;
     getCost: (characters: number) => number;
   })[];
   voices: string[];
 };
 
-export const speechModels: Record<string, TersaSpeechModel> = {
+export const speechModels: Record<string, BerrysSpeechModel> = {
   'tts-1': {
     label: 'TTS-1',
     chef: providers.openai,

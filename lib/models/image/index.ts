@@ -1,6 +1,6 @@
 import {
-  type TersaModel,
-  type TersaProvider,
+  type BerrysModel,
+type BerrysProvider,
   providers,
 } from '@/lib/providers';
 import { bedrock } from '@ai-sdk/amazon-bedrock';
@@ -15,8 +15,8 @@ const million = 1000000;
 
 export type ImageSize = `${number}x${number}`;
 
-type TersaImageModel = TersaModel & {
-  providers: (TersaProvider & {
+type BerrysImageModel = BerrysModel & {
+  providers: (BerrysProvider & {
     model: ImageModel;
     getCost: (props?: {
       textInput?: number;
@@ -30,7 +30,7 @@ type TersaImageModel = TersaModel & {
   providerOptions?: Record<string, Record<string, string>>;
 };
 
-export const imageModels: Record<string, TersaImageModel> = {
+export const imageModels: Record<string, BerrysImageModel> = {
   'grok-2-image': {
     icon: GrokIcon,
     label: 'Grok 2 Image',

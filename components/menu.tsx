@@ -113,7 +113,7 @@ export const Menu = () => {
           <DropdownMenuSeparator />
           <DropdownMenuItem asChild>
             <a
-              href="https://github.com/haydenbleasel/tersa"
+              href="https://github.com/GeneralBerrys/Berrys-ai-v2"
               target="_blank"
               rel="noopener noreferrer"
               className="flex items-center justify-between"

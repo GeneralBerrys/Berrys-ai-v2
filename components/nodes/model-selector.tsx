@@ -7,8 +7,8 @@ import {
 } from '@/components/ui/dialog';
 import type { PriceBracket } from '@/lib/models/text';
 import {
-  type TersaModel,
-  type TersaProvider,
+  type BerrysModel,
+  type BerrysProvider,
   providers,
 } from '@/lib/providers';
 import { cn } from '@/lib/utils';
@@ -36,7 +36,7 @@ import { Tooltip, TooltipContent, TooltipTrigger } from '../ui/tooltip';
 
 type ModelSelectorProps = {
   id?: string;
-  options: Record<string, TersaModel>;
+  options: Record<string, BerrysModel>;
   value: string;
   width?: number | string;
   className?: string;
@@ -95,7 +95,7 @@ const getCostBracketLabel = (bracket: PriceBracket) => {
 };
 
 const getModelDisabled = (
-  model: TersaModel,
+  model: BerrysModel,
   plan: SubscriptionContextType['plan']
 ) => {
   if (model.disabled) {
@@ -112,7 +112,7 @@ const getModelDisabled = (
   return false;
 };
 
-const CommandGroupHeading = ({ data }: { data: TersaProvider }) => (
+const CommandGroupHeading = ({ data }: { data: BerrysProvider }) => (
   <div className="flex items-center gap-2">
     <data.icon className="size-4 shrink-0" />
     <span className="block truncate">{data.name}</span>
@@ -124,8 +124,8 @@ const ModelIcon = ({
   chef,
   className,
 }: {
-  data: TersaModel;
-  chef: TersaProvider;
+  data: BerrysModel;
+  chef: BerrysProvider;
   className?: string;
 }) => {
   if (data.icon) {
@@ -165,7 +165,7 @@ export const ModelSelector = ({
       acc[chef][id] = model;
       return acc;
     },
-    {} as Record<string, Record<string, TersaModel>>
+    {} as Record<string, Record<string, BerrysModel>>
   );
 
   const sortedChefs = Object.keys(groupedOptions).sort((a, b) => {

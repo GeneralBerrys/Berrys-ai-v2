@@ -22,6 +22,10 @@ export const transcribeAction = async (
   try {
     await getSubscribedUser();
 
+    if (!database) {
+      throw new Error('Database not initialized');
+    }
+
     const project = await database.query.projects.findFirst({
       where: eq(projects.id, projectId),
     });

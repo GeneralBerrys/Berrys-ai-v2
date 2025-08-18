@@ -5,9 +5,9 @@ import Home from './(unauthenticated)/home/page';
 import UnauthenticatedLayout from './(unauthenticated)/layout';
 
 export const metadata: Metadata = {
-  title: 'A visual AI playground | Tersa',
+  title: 'A visual AI playground | Berrys',
   description:
-    'Tersa is an open source canvas for building AI workflows. Drag, drop connect and run nodes to build your own workflows powered by various industry-leading AI models.',
+    'Berrys is an open source canvas for building AI workflows. Drag, drop connect and run nodes to build your own workflows powered by various industry-leading AI models.',
 };
 
 const Index = async () => {

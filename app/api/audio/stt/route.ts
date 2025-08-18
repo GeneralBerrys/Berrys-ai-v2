@@ -10,7 +10,7 @@ export async function POST(req: Request) {
       return Response.json(aiError("BAD_REQUEST", "Missing audio_url"), { status: 400 });
     }
 
-    const slug = resolveReplicateSlug(modelKey, "openai/whisper");
+    const slug = resolveReplicateSlug(modelKey, "alireza0/whisperx");
     if (!slug) {
       return Response.json(aiError("BAD_REQUEST", "Invalid model key"), { status: 400 });
     }

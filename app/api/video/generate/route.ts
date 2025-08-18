@@ -10,7 +10,7 @@ export async function POST(req: Request) {
       return Response.json(aiError("BAD_REQUEST", "Missing prompt"), { status: 400 });
     }
 
-    const slug = resolveReplicateSlug(modelKey, "google/veo-3");
+    const slug = resolveReplicateSlug(modelKey, "bytedance/seedance-1-lite");
     if (!slug) {
       return Response.json(aiError("BAD_REQUEST", "Invalid model key"), { status: 400 });
     }

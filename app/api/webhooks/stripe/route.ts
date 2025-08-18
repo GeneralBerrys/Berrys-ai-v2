@@ -81,6 +81,10 @@ export async function POST(req: Request) {
           throw new Error('User ID not found');
         }
 
+        if (!database) {
+          throw new Error('Database not initialized');
+        }
+
         const userProfile = await database.query.profile.findFirst({
           where: eq(profile.id, subscription.metadata.userId),
         });

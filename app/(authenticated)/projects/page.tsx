@@ -7,7 +7,7 @@ import type { Metadata } from 'next';
 import { redirect } from 'next/navigation';
 
 export const metadata: Metadata = {
-  title: 'Tersa',
+  title: 'Berrys',
   description: 'Create and share AI workflows',
 };
 
@@ -24,6 +24,10 @@ const Projects = async () => {
 
   if (!profile?.onboardedAt) {
     return redirect('/welcome');
+  }
+
+  if (!database) {
+    throw new Error('Database not initialized');
   }
 
   let project = await database.query.projects.findFirst({

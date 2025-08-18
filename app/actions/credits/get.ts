@@ -30,6 +30,10 @@ export const getCredits = async (): Promise<
       throw new Error('Customer ID not found');
     }
 
+    if (!stripe) {
+      throw new Error('Stripe not initialized');
+    }
+
     const upcomingInvoice = await stripe.invoices.createPreview({
       subscription: profile.subscriptionId,
     });

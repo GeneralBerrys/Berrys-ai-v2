@@ -108,9 +108,8 @@ async function main() {
   await call("/api/text/generate", { prompt: "Say hi in five words", modelKey: "openai:gpt-4o-mini" }, cookie);
   await call("/api/image/generate", { prompt: "cinematic tiny cabin in the woods", modelKey: "bfl:flux-schnell", options: { width: 512, height: 512 } }, cookie);
   await call("/api/video/generate", { prompt: "drone flyover of snowy mountains at sunrise", modelKey: "google:veo-3", input: { duration: 5, aspect_ratio: "16:9" } }, cookie);
-  await call("/api/audio/tts", { text: "Hello from my app", modelKey: "minimax:speech-02-turbo" }, cookie);
-  // Note: STT test skipped - openai/whisper model version not available
-  // await call("/api/audio/stt", { audio_url: "https://filesamples.com/samples/audio/wav/sample1.wav", modelKey: "openai:whisper" }, cookie);
+          await call("/api/audio/tts", { text: "Hello from my app", modelKey: "minimax:speech-02-turbo" }, cookie);
+        await call("/api/audio/stt", { audio_url: "https://filesamples.com/samples/audio/wav/sample1.wav", modelKey: "whisperx:base" }, cookie);
 
   console.log("All tests passed.");
 }

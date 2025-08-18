@@ -41,6 +41,10 @@ export const createProjectAction = async (
       throw new Error('You need to be logged in to create a project!');
     }
 
+    if (!database) {
+      throw new Error('Database not initialized');
+    }
+
     const project = await database
       .insert(projects)
       .values({

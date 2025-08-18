@@ -20,22 +20,22 @@ import {
   GrokIcon,
   PerplexityIcon,
 } from '../icons';
-import { type TersaModel, type TersaProvider, providers } from '../providers';
+import { type BerrysModel, type BerrysProvider, providers } from '../providers';
 
 export type PriceBracket = 'lowest' | 'low' | 'high' | 'highest';
 
 const million = 1000000;
 const thousand = 1000;
 
-type TersaTextModel = TersaModel & {
-  providers: (TersaProvider & {
+type BerrysTextModel = BerrysModel & {
+  providers: (BerrysProvider & {
     model: LanguageModelV1;
     getCost: ({ input, output }: { input: number; output: number }) => number;
   })[];
 };
 
 // Median input cost: 2.7
-export const textModels: Record<string, TersaTextModel> = {
+export const textModels: Record<string, BerrysTextModel> = {
   'gpt-3.5-turbo': {
     label: 'GPT-3.5 Turbo',
     chef: providers.openai,

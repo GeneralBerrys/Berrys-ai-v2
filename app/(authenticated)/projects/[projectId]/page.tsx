@@ -15,7 +15,7 @@ import { notFound, redirect } from 'next/navigation';
 import { Suspense } from 'react';
 
 export const metadata: Metadata = {
-  title: 'Tersa',
+  title: 'Berrys',
   description: 'Create and share AI workflows',
 };
 
@@ -37,6 +37,10 @@ const Project = async ({ params }: ProjectProps) => {
 
   if (!profile.onboardedAt) {
     return redirect('/welcome');
+  }
+
+  if (!database) {
+    throw new Error('Database not initialized');
   }
 
   const project = await database.query.projects.findFirst({

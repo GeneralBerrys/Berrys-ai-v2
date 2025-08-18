@@ -15,23 +15,6 @@ export const SubFooter = () => {
           <Logo className="h-4 w-auto" />
         </Link>
         <Link href="/pricing">Pricing</Link>
-        <Link href="/privacy">Privacy</Link>
-        <Link href="/terms">Terms</Link>
-        <Link href="/acceptable-use">Acceptable Use</Link>
-        <a
-          href="https://github.com/haydenbleasel/tersa"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Source Code
-        </a>
-        <a
-          href="https://x.com/haydenbleasel"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Contact
-        </a>
       </div>
       <div className="flex items-center justify-end">
         <ThemeSwitcher

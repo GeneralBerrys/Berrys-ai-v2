@@ -24,7 +24,11 @@ export const updateProfileAction = async (
       throw new Error('You need to be logged in to update your profile!');
     }
 
-    await database.update(profile).set(data).where(eq(profile.id, userId));
+    if (!database) {
+    throw new Error('Database not initialized');
+  }
+
+  await database.update(profile).set(data).where(eq(profile.id, userId));
 
     return { success: true };
   } catch (error) {

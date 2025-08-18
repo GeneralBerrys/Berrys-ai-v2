@@ -29,7 +29,7 @@ import {
 } from './icons';
 import type { PriceBracket } from './models/text';
 
-export type TersaProvider = {
+export type BerrysProvider = {
   id: string;
   name: string;
   icon: typeof OpenAiIcon;
@@ -173,12 +173,12 @@ export const providers = {
   },
 };
 
-export type TersaModel = {
+export type BerrysModel = {
   // Inherits from chef if not provided
   icon?: typeof OpenAiIcon;
   label: string;
-  chef: TersaProvider;
-  providers: TersaProvider[];
+  chef: BerrysProvider;
+  providers: BerrysProvider[];
   legacy?: boolean;
   priceIndicator?: PriceBracket;
   disabled?: boolean;
