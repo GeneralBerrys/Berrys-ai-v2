@@ -1,4 +1,4 @@
-import { replicateImage } from "@/providers/replicate";
+import { createPrediction, waitForPrediction } from "@/providers/replicate";
 import { resolveReplicateSlug } from "@/lib/models/replicate-registry";
 import { aiError, type AIResponse } from "@/lib/ai/types";
 import { timed } from "@/lib/ai/exec";
@@ -16,20 +16,26 @@ export async function POST(req: Request) {
       return Response.json(aiError("BAD_REQUEST", "Invalid model key"), { status: 400 });
     }
 
-    const { value: result, took_ms } = await timed(async () => {
-      const model = replicateImage(slug);
-      return await model.doGenerate({ prompt, ...options });
+    const { value: final, took_ms } = await timed(async () => {
+      const pred = await createPrediction(slug, { prompt, ...options });
+      return await waitForPrediction(pred.urls?.get || pred.id);
     });
 
-    const res: AIResponse<{ image: any }> = {
+    const output = final.output; // usually URL(s)
+    const urls = Array.isArray(output) ? output : [output];
+    const res: AIResponse<{ urls: string[] }> = {
       ok: true,
       type: "image",
       model: slug,
-      data: { image: result },
+      data: { urls },
+      meta: { logs: final.logs ?? null },
       took_ms,
     };
     return Response.json(res);
   } catch (e: any) {
-    return Response.json(aiError("PROVIDER_ERROR", e?.message ?? "Image generation failed"), { status: 500 });
+    const m = e?.message || "Image generation failed";
+    const status = /timed out/i.test(m) ? 504 : 500;
+    const code = /timed out/i.test(m) ? "TIMEOUT" : "PROVIDER_ERROR";
+    return Response.json(aiError(code, m), { status });
   }
 }

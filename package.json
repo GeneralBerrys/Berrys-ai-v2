@@ -14,6 +14,7 @@
     "generate": "npx -y openapi-typescript@latest https://api.us1.bfl.ai/openapi.json -o ./openapi/bfl.d.ts",
     "validate:step2": "tsx scripts/validate-step2.mts",
     "verify:env": "tsx scripts/verify-env.mts",
+    "test:ai:auth": "tsx scripts/login-and-test.mts",
     "vercel:link": "vercel link --yes",
     "vercel:build": "vercel build",
     "vercel:deploy": "vercel deploy --prebuilt"

@@ -52,7 +52,8 @@ export const updateSession = async (request: NextRequest) => {
   if (
     !user &&
     !publicPaths.includes(request.nextUrl.pathname) &&
-    !request.nextUrl.pathname.startsWith('/auth')
+    !request.nextUrl.pathname.startsWith('/auth') &&
+    !request.nextUrl.pathname.startsWith('/api/dev/')
   ) {
     // no user, potentially respond by redirecting the user to the login page
     const url = request.nextUrl.clone();
