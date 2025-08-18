@@ -1,4 +1,8 @@
 {
   "$schema": "https://openapi.vercel.sh/vercel.json",
-  "ignoreCommand": "node scripts/skip-ci.js"
+  "ignoreCommand": "node scripts/skip-ci.js",
+  "functions": {
+    "app/**/route.ts": { "maxDuration": 300 },
+    "app/**/route.js": { "maxDuration": 300 }
+  }
 }
