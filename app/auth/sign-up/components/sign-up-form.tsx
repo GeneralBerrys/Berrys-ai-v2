@@ -17,7 +17,7 @@ export const SignUpForm = () => {
   const [captchaToken, setCaptchaToken] = useState<string | undefined>(
     undefined
   );
-  const disabled = isLoading || !email || !password || !captchaToken;
+  const disabled = isLoading || !email || !password || (!!env.NEXT_PUBLIC_TURNSTILE_SITE_KEY && !captchaToken);
 
   const handleEmailSignUp: FormEventHandler<HTMLFormElement> = async (
     event
@@ -83,12 +83,14 @@ export const SignUpForm = () => {
           </Button>
         </div>
       </form>
-      <div className="mt-4">
-        <Turnstile
-          siteKey={env.NEXT_PUBLIC_TURNSTILE_SITE_KEY}
-          onSuccess={setCaptchaToken}
-        />
-      </div>
+      {env.NEXT_PUBLIC_TURNSTILE_SITE_KEY && (
+        <div className="mt-4">
+          <Turnstile
+            siteKey={env.NEXT_PUBLIC_TURNSTILE_SITE_KEY}
+            onSuccess={setCaptchaToken}
+          />
+        </div>
+      )}
     </>
   );
 };

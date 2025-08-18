@@ -10,14 +10,16 @@ declare global {
 let client: ReturnType<typeof postgres> | undefined;
 
 if (process.env.NODE_ENV !== 'production') {
-  if (!global.postgresSqlClient) {
+  if (!global.postgresSqlClient && env.POSTGRES_URL) {
     // Disable prefetch as it is not supported for "Transaction" pool mode
     global.postgresSqlClient = postgres(env.POSTGRES_URL, { prepare: false });
   }
   client = global.postgresSqlClient;
 } else {
   // Disable prefetch as it is not supported for "Transaction" pool mode
-  client = postgres(env.POSTGRES_URL, { prepare: false });
+  if (env.POSTGRES_URL) {
+    client = postgres(env.POSTGRES_URL, { prepare: false });
+  }
 }
 
-export const database = drizzle({ client, schema });
+export const database = client ? drizzle(client, { schema }) : null;

@@ -2,9 +2,9 @@ import Stripe from 'stripe';
 import { currentUserProfile } from './auth';
 import { env } from './env';
 
-export const stripe = new Stripe(env.STRIPE_SECRET_KEY, {
+export const stripe = env.STRIPE_SECRET_KEY ? new Stripe(env.STRIPE_SECRET_KEY, {
   apiVersion: '2025-05-28.basil',
-});
+}) : null;
 
 const creditValue = 0.005;
 
@@ -24,6 +24,10 @@ export const trackCreditUsage = async ({
 
   if (!profile.customerId) {
     throw new Error('User customerId not found');
+  }
+
+  if (!stripe || !env.STRIPE_CREDITS_METER_NAME) {
+    throw new Error('Stripe not configured');
   }
 
   await stripe.billing.meterEvents.create({
