@@ -97,7 +97,7 @@ export const NodeLayout = ({
       {type !== 'drop' && toolbar?.length && (
         <NodeToolbar id={id} items={toolbar} />
       )}
-      {type !== 'file' && type !== 'tweet' && (
+      {type !== 'file' && (
         <Handle type="target" position={Position.Left} />
       )}
       <ContextMenu onOpenChange={handleSelect}>

@@ -23,7 +23,6 @@ import {
   getImagesFromImageNodes,
   getTextFromTextNodes,
   getTranscriptionFromAudioNodes,
-  getTweetContentFromTweetNodes,
 } from '@/lib/xyflow';
 import { useProject } from '@/providers/project';
 import { ReasoningTunnel } from '@/tunnels/reasoning';
@@ -108,7 +107,7 @@ export const TextTransform = ({
     const audioPrompts = getTranscriptionFromAudioNodes(incomers);
     const images = getImagesFromImageNodes(incomers);
     const imageDescriptions = getDescriptionsFromImageNodes(incomers);
-    const tweetContent = getTweetContentFromTweetNodes(incomers);
+
     const files = getFilesFromFileNodes(incomers);
 
     if (!textPrompts.length && !audioPrompts.length && !data.instructions) {
@@ -134,9 +133,7 @@ export const TextTransform = ({
       content.push('--- Image Descriptions ---', ...imageDescriptions);
     }
 
-    if (tweetContent.length) {
-      content.push('--- Tweet Content ---', ...tweetContent);
-    }
+
 
     analytics.track('canvas', 'node', 'generate', {
       type,

@@ -137,11 +137,11 @@ export const Features = () => (
           </div>
           <div className="grid gap-2">
             <h3 className="font-medium text-xl sm:text-2xl">
-              Transform and refactor code
+              Process and analyze files
             </h3>
             <p className="text-muted-foreground text-sm sm:text-base">
               Use AI models to analyze, refactor, and optimize your code.
-              Connect code nodes to provide source files and text nodes to
+              Connect file nodes to provide source files and text nodes to
               specify transformation instructions or requirements.
             </p>
           </div>
