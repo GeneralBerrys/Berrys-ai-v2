@@ -50,6 +50,7 @@ export const env = createEnv({
     RUNWAYML_API_SECRET: z.string().startsWith('key_').optional(),
     LUMA_API_KEY: z.string().startsWith('luma-').optional(),
     BF_API_KEY: z.string().optional(),
+    REPLICATE_API_TOKEN: z.string().optional(),
   },
   client: {
     NEXT_PUBLIC_TURNSTILE_SITE_KEY: z.string().optional(),
@@ -102,5 +103,6 @@ export const env = createEnv({
     LMNT_API_KEY: process.env.LMNT_API_KEY,
     BF_API_KEY: process.env.BF_API_KEY,
     PERPLEXITY_API_KEY: process.env.PERPLEXITY_API_KEY,
+    REPLICATE_API_TOKEN: process.env.REPLICATE_API_TOKEN,
   },
 });

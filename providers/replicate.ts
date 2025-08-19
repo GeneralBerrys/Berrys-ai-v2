@@ -1,11 +1,13 @@
 import { createReplicate } from '@ai-sdk/replicate';
+import { env } from '@/lib/env';
 
 const BASE = 'https://api.replicate.com/v1';
-const TOKEN = process.env.REPLICATE_API_TOKEN ?? '';
 
-export const replicate = createReplicate({
-  apiToken: TOKEN,
-});
+export const replicate = env.REPLICATE_API_TOKEN 
+  ? createReplicate({
+      apiToken: env.REPLICATE_API_TOKEN,
+    })
+  : null;
 
 // IMAGE via Vercel AI SDK (official path)
 export const replicateImage = (slug: string) => replicate.image(slug);
@@ -21,10 +23,14 @@ type Prediction = {
 };
 
 async function api(path: string, init?: RequestInit) {
+  if (!env.REPLICATE_API_TOKEN) {
+    throw new Error('Replicate API token not configured');
+  }
+
   const res = await fetch(`${BASE}${path}`, {
     ...init,
     headers: {
-      Authorization: `Token ${TOKEN}`,
+      Authorization: `Token ${env.REPLICATE_API_TOKEN}`,
       'Content-Type': 'application/json',
       ...(init?.headers || {}),
     },
@@ -45,9 +51,13 @@ export async function createPrediction(modelVersionOrOwnerModel: string, input: 
 }
 
 export async function getPrediction(idOrUrl: string) {
+  if (!env.REPLICATE_API_TOKEN) {
+    throw new Error('Replicate API token not configured');
+  }
+
   const url = idOrUrl.startsWith('http') ? idOrUrl : `${BASE}/predictions/${idOrUrl}`;
   const res = await fetch(url, {
-    headers: { Authorization: `Token ${TOKEN}` },
+    headers: { Authorization: `Token ${env.REPLICATE_API_TOKEN}` },
   });
   if (!res.ok) throw new Error(`Replicate GET ${res.status}`);
   return (await res.json()) as Prediction;
