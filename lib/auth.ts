@@ -21,6 +21,10 @@ export const currentUserProfile = async () => {
     throw new Error('User not found');
   }
 
+  if (!database) {
+    throw new Error('Database not initialized');
+  }
+
   const userProfiles = await database
     .select()
     .from(profile)

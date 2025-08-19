@@ -10,7 +10,12 @@ export const replicate = env.REPLICATE_API_TOKEN
   : null;
 
 // IMAGE via Vercel AI SDK (official path)
-export const replicateImage = (slug: string) => replicate.image(slug);
+export const replicateImage = (slug: string) => {
+  if (!replicate) {
+    throw new Error('Replicate not initialized');
+  }
+  return replicate.image(slug);
+};
 
 // Minimal REST helper for future text/video/audio routes (unused in Step 3)
 type Prediction = {
