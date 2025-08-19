@@ -67,6 +67,7 @@ export const getSubscribedUser = async () => {
   }
 
   if (
+    env.STRIPE_HOBBY_PRODUCT_ID &&
     profile.productId === env.STRIPE_HOBBY_PRODUCT_ID &&
     credits.credits <= 0
   ) {

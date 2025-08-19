@@ -7,6 +7,10 @@ export const luma = (
 ): VideoModel => ({
   modelId,
   generate: async ({ prompt, imagePrompt, duration }) => {
+    if (!env.LUMA_API_KEY) {
+      throw new Error('Luma configuration not found');
+    }
+
     const luma = new LumaAI({ authToken: env.LUMA_API_KEY });
 
     if (process.env.NODE_ENV !== 'production' && imagePrompt) {

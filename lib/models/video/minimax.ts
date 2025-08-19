@@ -55,6 +55,10 @@ const baseUrl = 'https://api.minimaxi.chat/';
 export const minimax = (modelId: CreateJobProps['model']): VideoModel => ({
   modelId,
   generate: async ({ prompt, imagePrompt }) => {
+    if (!env.MINIMAX_API_KEY || !env.MINIMAX_GROUP_ID) {
+      throw new Error('Minimax configuration not found');
+    }
+
     const props: CreateJobProps = {
       model: modelId,
       prompt,

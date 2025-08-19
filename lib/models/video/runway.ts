@@ -5,6 +5,10 @@ import RunwayML from '@runwayml/sdk';
 export const runway = (modelId: 'gen4_turbo' | 'gen3a_turbo'): VideoModel => ({
   modelId,
   generate: async ({ prompt, imagePrompt, duration }) => {
+    if (!env.RUNWAYML_API_SECRET) {
+      throw new Error('Runway configuration not found');
+    }
+
     if (!imagePrompt) {
       throw new Error('Runway requires at least one image');
     }

@@ -38,6 +38,10 @@ const resend = new Resend(env.RESEND_TOKEN);
 
 export const POST = async (req: Request) => {
   try {
+    if (!env.RESEND_TOKEN || !env.SUPABASE_AUTH_HOOK_SECRET || !env.RESEND_EMAIL) {
+      throw new Error('Resend or Supabase configuration not found');
+    }
+
     const payload = await req.text();
     const headers = Object.fromEntries(req.headers);
 

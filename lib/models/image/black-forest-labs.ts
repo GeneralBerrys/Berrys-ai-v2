@@ -3,8 +3,12 @@ import type { paths } from '@/openapi/bfl';
 import type { ImageModel } from 'ai';
 import createFetchClient, { type Client } from 'openapi-fetch';
 
-const createClient = () =>
-  createFetchClient<paths>({
+const createClient = () => {
+  if (!env.BF_API_KEY) {
+    throw new Error('Black Forest Labs configuration not found');
+  }
+
+  return createFetchClient<paths>({
     baseUrl: 'https://api.us1.bfl.ai',
     headers: {
       'Content-Type': 'application/json',
@@ -12,6 +16,7 @@ const createClient = () =>
     },
     fetch: fetch,
   });
+};
 
 const models = [
   'flux-pro-1.1',
