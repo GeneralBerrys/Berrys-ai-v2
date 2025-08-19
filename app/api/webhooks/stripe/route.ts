@@ -8,6 +8,10 @@ import { NextResponse } from 'next/server';
 import type Stripe from 'stripe';
 
 export async function POST(req: Request) {
+  if (!stripe) {
+    return new NextResponse('Stripe not initialized', { status: 500 });
+  }
+
   const body = await req.text();
   const signature = req.headers.get('stripe-signature') as string;
 

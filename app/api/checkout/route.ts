@@ -12,6 +12,10 @@ const getFrequencyPrice = async (
   productId: string,
   frequency: Stripe.Price.Recurring.Interval
 ) => {
+  if (!stripe) {
+    throw new Error('Stripe not initialized');
+  }
+  
   const prices = await stripe.prices.list({
     product: productId,
   });
@@ -88,6 +92,10 @@ export const GET = async (request: NextRequest) => {
   }
 
   try {
+    if (!stripe) {
+      throw new Error('Stripe not initialized');
+    }
+    
     const checkoutLink = await stripe.checkout.sessions.create({
       customer: profile.customerId ?? undefined,
       customer_email: profile.customerId ? undefined : user.email,

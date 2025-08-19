@@ -9,6 +9,10 @@ const returnUrl = `${protocol}://${env.VERCEL_PROJECT_PRODUCTION_URL}`;
 
 export const GET = async () => {
   try {
+    if (!stripe) {
+      throw new Error('Stripe not initialized');
+    }
+
     const profile = await currentUserProfile();
 
     if (!profile) {
