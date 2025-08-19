@@ -1,18 +1,18 @@
 import { getSubscribedUser } from '@/lib/auth';
 import { parseError } from '@/lib/error/parse';
 import { textModels } from '@/lib/models/text';
-import { createRateLimiter, slidingWindow } from '@/lib/rate-limit';
+import { createRateLimiter, slidingWindow, redis } from '@/lib/rate-limit';
 import { trackCreditUsage } from '@/lib/stripe';
 import { streamText } from 'ai';
 
 // Allow streaming responses up to 30 seconds
 export const maxDuration = 30;
 
-// Create a rate limiter for the chat API
-const rateLimiter = createRateLimiter({
+// Create a rate limiter for the code API (only if Redis is available)
+const rateLimiter = redis ? createRateLimiter({
   limiter: slidingWindow(10, '1 m'),
   prefix: 'api-code',
-});
+}) : null;
 
 export const POST = async (req: Request) => {
   try {
@@ -23,8 +23,8 @@ export const POST = async (req: Request) => {
     return new Response(message, { status: 401 });
   }
 
-  // Apply rate limiting
-  if (process.env.NODE_ENV === 'production') {
+  // Apply rate limiting (only if Redis is available)
+  if (process.env.NODE_ENV === 'production' && rateLimiter) {
     const ip = req.headers.get('x-forwarded-for') || 'anonymous';
     const { success, limit, reset, remaining } = await rateLimiter.limit(ip);
 
