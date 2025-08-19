@@ -2,6 +2,7 @@ import { env } from '@/lib/env';
 import { NextResponse } from 'next/server';
 import { Resend } from 'resend';
 import crypto from 'crypto';
+import React from 'react';
 
 // Import email templates
 import { MagicLinkEmailTemplate } from '@/emails/magic-link';
