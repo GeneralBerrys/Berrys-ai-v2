@@ -14,6 +14,11 @@ type TopRightProps = {
 
 export const TopRight = async ({ id }: TopRightProps) => {
   const profile = await currentUserProfile();
+  
+  if (!database) {
+    return null;
+  }
+
   const project = await database.query.projects.findFirst({
     where: eq(projects.id, id),
   });
