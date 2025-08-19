@@ -71,6 +71,10 @@ export async function POST(req: Request) {
           }
         }
 
+        if (!database) {
+          throw new Error('Database not initialized');
+        }
+
         await database
           .update(profile)
           .set({
