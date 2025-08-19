@@ -6,7 +6,9 @@ import { type NextRequest, NextResponse } from 'next/server';
 import type Stripe from 'stripe';
 
 const protocol = process.env.NODE_ENV === 'production' ? 'https' : 'http';
-const successUrl = `${protocol}://${env.VERCEL_PROJECT_PRODUCTION_URL}`;
+const successUrl = env.VERCEL_PROJECT_PRODUCTION_URL 
+  ? `${protocol}://${env.VERCEL_PROJECT_PRODUCTION_URL}`
+  : `${protocol}://localhost:3000`;
 
 const getFrequencyPrice = async (
   productId: string,
@@ -70,6 +72,10 @@ export const GET = async (request: NextRequest) => {
   }
 
   if (productName === 'hobby') {
+    if (!env.STRIPE_HOBBY_PRODUCT_ID || !env.STRIPE_USAGE_PRODUCT_ID) {
+      throw new Error('Stripe product IDs not configured');
+    }
+    
     lineItems.push(
       {
         price: await getFrequencyPrice(env.STRIPE_HOBBY_PRODUCT_ID, 'month'),
@@ -80,6 +86,10 @@ export const GET = async (request: NextRequest) => {
       }
     );
   } else if (productName === 'pro') {
+    if (!env.STRIPE_PRO_PRODUCT_ID || !env.STRIPE_USAGE_PRODUCT_ID) {
+      throw new Error('Stripe product IDs not configured');
+    }
+    
     lineItems.push(
       {
         price: await getFrequencyPrice(env.STRIPE_PRO_PRODUCT_ID, frequency),

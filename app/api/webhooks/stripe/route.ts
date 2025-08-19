@@ -12,6 +12,10 @@ export async function POST(req: Request) {
     return new NextResponse('Stripe not initialized', { status: 500 });
   }
 
+  if (!env.STRIPE_WEBHOOK_SECRET) {
+    return new NextResponse('Stripe webhook secret not configured', { status: 500 });
+  }
+
   const body = await req.text();
   const signature = req.headers.get('stripe-signature') as string;
 

@@ -34,6 +34,10 @@ export const getCredits = async (): Promise<
       throw new Error('Stripe not initialized');
     }
 
+    if (!env.STRIPE_USAGE_PRODUCT_ID || !env.STRIPE_HOBBY_PRODUCT_ID) {
+      throw new Error('Stripe product IDs not configured');
+    }
+
     const upcomingInvoice = await stripe.invoices.createPreview({
       subscription: profile.subscriptionId,
     });
