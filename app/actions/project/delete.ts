@@ -23,6 +23,10 @@ export const deleteProjectAction = async (
       throw new Error('You need to be logged in to delete a project!');
     }
 
+    if (!database) {
+      throw new Error('Database not initialized');
+    }
+
     const project = await database
       .delete(projects)
       .where(and(eq(projects.id, projectId), eq(projects.userId, user.id)));
