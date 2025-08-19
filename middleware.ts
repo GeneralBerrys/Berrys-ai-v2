@@ -13,8 +13,9 @@ export const config = {
      * - _next/image (image optimization files)
      * - favicon.ico (favicon file)
      * - api/webhooks/ (webhook endpoints)
+     * - api/auth/send-email (email webhook endpoint)
      * Feel free to modify this pattern to include more paths.
      */
-    '/((?!_next/static|_next/image|favicon.ico|api/webhooks/|.*\\.(?:svg|png|jpg|jpeg|gif|webp|mp3|mp4)$).*)',
+    '/((?!_next/static|_next/image|favicon.ico|api/webhooks/|api/auth/send-email|.*\\.(?:svg|png|jpg|jpeg|gif|webp|mp3|mp4)$).*)',
   ],
 };
