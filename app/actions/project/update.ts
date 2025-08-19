@@ -24,6 +24,10 @@ export const updateProjectAction = async (
       throw new Error('You need to be logged in to update a project!');
     }
 
+    if (!database) {
+      throw new Error('Database not initialized');
+    }
+
     const project = await database
       .update(projects)
       .set({
