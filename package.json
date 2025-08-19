@@ -15,6 +15,7 @@
     "validate:step2": "tsx scripts/validate-step2.mts",
     "verify:env": "tsx scripts/verify-env.mts",
     "test:ai:auth": "tsx scripts/login-and-test.mts",
+    "test:email": "tsx scripts/test-send-email.mts",
     "vercel:link": "vercel link --yes",
     "vercel:build": "vercel build",
     "vercel:deploy": "vercel deploy --prebuilt"
