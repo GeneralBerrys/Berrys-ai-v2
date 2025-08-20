@@ -21,6 +21,7 @@ const Index = async () => {
     );
   }
 
+  // Only redirect authenticated users to /projects
   redirect('/projects');
 };
 
