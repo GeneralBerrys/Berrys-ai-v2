@@ -3,10 +3,10 @@ import { profile } from '@/schema';
 import { eq } from 'drizzle-orm';
 import { database } from './database';
 import { env } from './env';
-import { createClient } from './supabase/server';
+import { createSupabaseServer } from './supabase/server';
 
 export const currentUser = async () => {
-  const client = await createClient();
+  const client = await createSupabaseServer();
   const {
     data: { user },
   } = await client.auth.getUser();

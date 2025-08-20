@@ -5,7 +5,7 @@ import { database } from '@/lib/database';
 import { parseError } from '@/lib/error/parse';
 import { speechModels } from '@/lib/models/speech';
 import { trackCreditUsage } from '@/lib/stripe';
-import { createClient } from '@/lib/supabase/server';
+import { createSupabaseServer } from '@/lib/supabase/server';
 import { projects } from '@/schema';
 import type { Edge, Node, Viewport } from '@xyflow/react';
 import { experimental_generateSpeech as generateSpeech } from 'ai';
@@ -37,7 +37,7 @@ export const generateSpeechAction = async ({
     }
 > => {
   try {
-    const client = await createClient();
+    const client = await createSupabaseServer();
     const user = await getSubscribedUser();
 
     const model = speechModels[modelId];

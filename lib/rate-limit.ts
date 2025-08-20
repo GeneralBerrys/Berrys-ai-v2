@@ -1,15 +1,9 @@
 import { env } from '@/lib/env';
 import { Ratelimit, type RatelimitConfig } from '@upstash/ratelimit';
-import { Redis } from '@upstash/redis';
-
-export const redis = env.UPSTASH_REDIS_REST_URL && env.UPSTASH_REDIS_REST_TOKEN 
-  ? new Redis({
-      url: env.UPSTASH_REDIS_REST_URL,
-      token: env.UPSTASH_REDIS_REST_TOKEN,
-    })
-  : null;
+import { getRedis } from '@/lib/redis';
 
 export const createRateLimiter = (props: Omit<RatelimitConfig, 'redis'>) => {
+  const redis = getRedis();
   if (!redis) {
     throw new Error('Redis not configured');
   }
@@ -22,3 +16,6 @@ export const createRateLimiter = (props: Omit<RatelimitConfig, 'redis'>) => {
 };
 
 export const { slidingWindow } = Ratelimit;
+
+// Export the lazy Redis client for backward compatibility
+export const redis = getRedis();

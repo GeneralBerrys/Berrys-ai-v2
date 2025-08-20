@@ -5,7 +5,7 @@ import { database } from '@/lib/database';
 import { parseError } from '@/lib/error/parse';
 import { imageModels } from '@/lib/models/image';
 import { trackCreditUsage } from '@/lib/stripe';
-import { createClient } from '@/lib/supabase/server';
+import { createSupabaseServer } from '@/lib/supabase/server';
 import { projects } from '@/schema';
 import type { Edge, Node, Viewport } from '@xyflow/react';
 import {
@@ -98,7 +98,7 @@ export const editImageAction = async ({
     }
 > => {
   try {
-    const client = await createClient();
+    const client = await createSupabaseServer();
     const user = await getSubscribedUser();
 
     const model = imageModels[modelId];

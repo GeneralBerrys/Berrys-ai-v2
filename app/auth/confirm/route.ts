@@ -1,30 +1,32 @@
-import { createClient } from '@/lib/supabase/server';
-import type { EmailOtpType } from '@supabase/supabase-js';
-import { redirect } from 'next/navigation';
-import type { NextRequest } from 'next/server';
+import { createSupabaseServer } from '@/lib/supabase/server';
+import { NextRequest, NextResponse } from 'next/server';
 
-export async function GET(request: NextRequest) {
-  const { searchParams } = new URL(request.url);
-  const token_hash = searchParams.get('token_hash');
-  const type = searchParams.get('type') as EmailOtpType | null;
-  const next = searchParams.get('next') ?? '/';
+export async function POST(request: NextRequest) {
+  try {
+    const { token_hash, type } = await request.json();
 
-  if (token_hash && type) {
-    const supabase = await createClient();
-
-    const { error } = await supabase.auth.verifyOtp({
-      type,
-      token_hash,
-    });
-    if (error) {
-      // redirect the user to an error page with some instructions
-      redirect(`/auth/error?error=${error?.message}`);
-    } else {
-      // redirect user to specified redirect URL or root of app
-      redirect(next);
+    if (!token_hash || !type) {
+      return NextResponse.json(
+        { error: 'Missing token_hash or type' },
+        { status: 400 }
+      );
     }
-  }
 
-  // redirect the user to an error page with some instructions
-  redirect('/auth/error?error=No token hash or type');
+    const supabase = await createSupabaseServer();
+    const { error } = await supabase.auth.verifyOtp({
+      token_hash,
+      type: type as any,
+    });
+
+    if (error) {
+      return NextResponse.json({ error: error.message }, { status: 400 });
+    }
+
+    return NextResponse.json({ success: true });
+  } catch (error) {
+    return NextResponse.json(
+      { error: 'Internal server error' },
+      { status: 500 }
+    );
+  }
 }

@@ -7,7 +7,7 @@ export const metadata = {
 
 export default async function Page({
   searchParams,
-}: { searchParams: Promise<{ error: string }> }) {
+}: { searchParams: Promise<{ error?: string; message?: string }> }) {
   const params = await searchParams;
 
   return (
@@ -21,7 +21,11 @@ export default async function Page({
               </CardTitle>
             </CardHeader>
             <CardContent>
-              {params?.error ? (
+              {params?.message ? (
+                <p className="text-muted-foreground text-sm">
+                  {params.message}
+                </p>
+              ) : params?.error ? (
                 <p className="text-muted-foreground text-sm">
                   Code error: {params.error}
                 </p>

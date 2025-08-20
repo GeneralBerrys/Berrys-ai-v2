@@ -1,7 +1,7 @@
-import { createClient } from '@/lib/supabase/server';
+import { createSupabaseServer } from '@/lib/supabase/server';
 
 export default async function SupabaseDebugPage() {
-  const supabase = await createClient();
+  const supabase = await createSupabaseServer();
   const { data: { user }, error } = await supabase.auth.getUser();
 
   return (
