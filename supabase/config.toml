@@ -207,8 +207,6 @@ max_frequency = "5s"
 
 [auth.hook.send_email]
 enabled = false
-# uri = "http://localhost:3000/api/webhooks/resend"
-# secrets = "env(SUPABASE_AUTH_HOOK_SECRET)"
 
 # Configure one of the supported SMS providers: `twilio`, `twilio_verify`, `messagebird`, `textlocal`, `vonage`.
 [auth.sms.twilio]

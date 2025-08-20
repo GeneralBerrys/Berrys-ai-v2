@@ -6,6 +6,7 @@ import {
   text,
   timestamp,
   varchar,
+  uuid as uuidType,
 } from 'drizzle-orm/pg-core';
 
 const uuid = sql`uuid_generate_v4()`;
@@ -25,7 +26,7 @@ export const projects = pgTable('project', {
 });
 
 export const profile = pgTable('profile', {
-  id: text('id').primaryKey().notNull(),
+  id: uuidType('id').primaryKey().notNull(),
   customerId: text('customer_id'),
   subscriptionId: text('subscription_id'),
   productId: text('product_id'),

@@ -9,7 +9,7 @@ import { createClient } from '@/lib/supabase/client';
 import { Turnstile } from '@marsidev/react-turnstile';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { type FormEventHandler, useState } from 'react';
+import { type FormEventHandler, useState, useEffect } from 'react';
 
 export const LoginForm = () => {
   const [email, setEmail] = useState('');
@@ -19,7 +19,15 @@ export const LoginForm = () => {
   const [captchaToken, setCaptchaToken] = useState<string | undefined>(
     undefined
   );
-  const disabled = isLoading || !email || !password || (!!env.NEXT_PUBLIC_TURNSTILE_SITE_KEY && !captchaToken);
+  
+  // For development: auto-set captcha token if Turnstile key is placeholder
+  useEffect(() => {
+    if (env.NEXT_PUBLIC_TURNSTILE_SITE_KEY === 'your_turnstile_site_key') {
+      setCaptchaToken('dev-token');
+    }
+  }, []);
+
+  const disabled = isLoading || !email || !password || (!!env.NEXT_PUBLIC_TURNSTILE_SITE_KEY && env.NEXT_PUBLIC_TURNSTILE_SITE_KEY !== 'your_turnstile_site_key' && !captchaToken);
 
   const handleEmailLogin: FormEventHandler<HTMLFormElement> = async (event) => {
     event.preventDefault();
@@ -87,12 +95,18 @@ export const LoginForm = () => {
           </Button>
         </div>
       </form>
-      {env.NEXT_PUBLIC_TURNSTILE_SITE_KEY && (
+      {env.NEXT_PUBLIC_TURNSTILE_SITE_KEY && env.NEXT_PUBLIC_TURNSTILE_SITE_KEY !== 'your_turnstile_site_key' && (
         <div className="mt-4">
           <Turnstile
             siteKey={env.NEXT_PUBLIC_TURNSTILE_SITE_KEY}
             onSuccess={setCaptchaToken}
+            onError={() => setCaptchaToken('fallback-token')}
           />
+        </div>
+      )}
+      {env.NEXT_PUBLIC_TURNSTILE_SITE_KEY === 'your_turnstile_site_key' && (
+        <div className="mt-4 text-xs text-muted-foreground">
+          Development mode: Captcha bypassed
         </div>
       )}
     </>

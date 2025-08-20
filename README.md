@@ -25,6 +25,10 @@ A visual AI playground. Berrys is an open source canvas for building AI workflow
 - [Tailwind CSS](https://tailwindcss.com/) for styling
 - [shadcn/ui](https://ui.shadcn.com/), [Kibo UI](https://www.kibo-ui.com/) and [Radix UI](https://www.radix-ui.com/) for accessible UI components
 
+## Authentication
+
+Auth emails are sent by Supabase-managed provider; no custom webhook required. All email templates are configured in the Supabase Dashboard under Auth → Email Templates.
+
 ## Getting Started
 
 ### Prerequisites
