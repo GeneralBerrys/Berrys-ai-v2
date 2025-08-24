@@ -16,7 +16,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { useAnalytics } from '@/hooks/use-analytics';
 import { useReasoning } from '@/hooks/use-reasoning';
 import { handleError } from '@/lib/error/handle';
-import { textModels } from '@/lib/models/text';
+import { replicateTextModels } from '@/lib/models/replicate-ui';
 import {
   getDescriptionsFromImageNodes,
   getFilesFromFileNodes,
@@ -52,17 +52,7 @@ type TextTransformProps = TextNodeProps & {
   title: string;
 };
 
-const getDefaultModel = (models: typeof textModels) => {
-  const defaultModel = Object.entries(models).find(
-    ([_, model]) => model.default
-  );
 
-  if (!defaultModel) {
-    throw new Error('No default model found');
-  }
-
-  return defaultModel[0];
-};
 
 export const TextTransform = ({
   data,
@@ -72,7 +62,7 @@ export const TextTransform = ({
 }: TextTransformProps) => {
   const { updateNodeData, getNodes, getEdges } = useReactFlow();
   const project = useProject();
-  const modelId = data.model ?? getDefaultModel(textModels);
+  const modelId = data.model ?? Object.keys(replicateTextModels)[0];
   const analytics = useAnalytics();
   const [reasoning, setReasoning] = useReasoning();
   const { append, messages, setMessages, status, stop } = useChat({
@@ -188,7 +178,7 @@ export const TextTransform = ({
       children: (
         <ModelSelector
           value={modelId}
-          options={textModels}
+          options={replicateTextModels}
           key={id}
           className="w-[200px] rounded-full"
           onChange={(value) => updateNodeData(id, { model: value })}

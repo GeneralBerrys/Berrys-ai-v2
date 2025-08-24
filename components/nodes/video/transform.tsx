@@ -6,7 +6,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { useAnalytics } from '@/hooks/use-analytics';
 import { download } from '@/lib/download';
 import { handleError } from '@/lib/error/handle';
-import { videoModels } from '@/lib/models/video';
+import { replicateVideoModels } from '@/lib/models/replicate-ui';
 import { getImagesFromImageNodes, getTextFromTextNodes } from '@/lib/xyflow';
 import { useProject } from '@/providers/project';
 import { getIncomers, useReactFlow } from '@xyflow/react';
@@ -27,17 +27,7 @@ type VideoTransformProps = VideoNodeProps & {
   title: string;
 };
 
-const getDefaultModel = (models: typeof videoModels) => {
-  const defaultModel = Object.entries(models).find(
-    ([_, model]) => model.default
-  );
 
-  if (!defaultModel) {
-    throw new Error('No default model found');
-  }
-
-  return defaultModel[0];
-};
 
 export const VideoTransform = ({
   data,
@@ -48,7 +38,7 @@ export const VideoTransform = ({
   const { updateNodeData, getNodes, getEdges } = useReactFlow();
   const [loading, setLoading] = useState(false);
   const project = useProject();
-  const modelId = data.model ?? getDefaultModel(videoModels);
+  const modelId = data.model ?? Object.keys(replicateVideoModels)[0];
   const analytics = useAnalytics();
 
   const handleGenerate = async () => {
@@ -104,7 +94,7 @@ export const VideoTransform = ({
       children: (
         <ModelSelector
           value={modelId}
-          options={videoModels}
+          options={replicateVideoModels}
           key={id}
           className="w-[200px] rounded-full"
           onChange={(value) => updateNodeData(id, { model: value })}

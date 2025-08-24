@@ -4,8 +4,22 @@ import { eq } from 'drizzle-orm';
 import { database } from './database';
 import { env } from './env';
 import { createSupabaseServer } from './supabase/server';
+import { isDev } from './isDev';
 
 export const currentUser = async () => {
+  // Dev mode: return mock user
+  if (isDev) {
+    return { 
+      id: 'dev-user-123', 
+      email: 'dev@local.test', 
+      role: 'developer',
+      user_metadata: {
+        name: 'Dev User',
+        avatar: null
+      }
+    };
+  }
+  
   const client = await createSupabaseServer();
   const {
     data: { user },
@@ -19,6 +33,17 @@ export const currentUserProfile = async () => {
 
   if (!user) {
     throw new Error('User not found');
+  }
+
+  // Dev mode: return mock profile
+  if (isDev) {
+    return {
+      id: 'dev-user-123',
+      customerId: null,
+      subscriptionId: 'dev-subscription',
+      productId: 'dev-product',
+      onboardedAt: new Date(),
+    };
   }
 
   if (!database) {
@@ -83,6 +108,11 @@ export const getSubscribedUser = async () => {
 
   if (!profile) {
     throw new Error('User profile not found');
+  }
+
+  // Dev mode: always allow access
+  if (isDev) {
+    return { user, profile };
   }
 
   if (!profile.subscriptionId) {

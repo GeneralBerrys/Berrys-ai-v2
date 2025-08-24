@@ -14,6 +14,7 @@ import { eq } from 'drizzle-orm';
 import type { Metadata } from 'next';
 import { notFound, redirect } from 'next/navigation';
 import { Suspense } from 'react';
+import { isDev } from '@/lib/isDev';
 
 export const metadata: Metadata = {
   title: 'Berrys',
@@ -30,6 +31,46 @@ type ProjectProps = {
 
 const Project = async ({ params }: ProjectProps) => {
   const { projectId } = await params;
+  
+  // Dev mode: return mock project immediately
+  if (isDev || process.env.NODE_ENV === 'development') {
+    console.log(`[project:${projectId}] Dev mode: returning mock project`);
+    const mockProject = {
+      id: projectId,
+      name: 'Dev Project',
+      userId: 'dev-user-123',
+      createdAt: new Date('2024-01-01T00:00:00Z'),
+      updatedAt: new Date('2024-01-01T00:00:00Z'),
+      content: { nodes: [], edges: [], viewport: { x: 0, y: 0, zoom: 1 } },
+      transcriptionModel: 'whisper-1',
+      visionModel: 'gpt-4o',
+      image: null,
+      members: [],
+      demoProject: false,
+    };
+
+    return (
+      <div className="flex h-screen w-screen items-stretch overflow-hidden">
+        <div className="relative flex-1">
+          <ProjectProvider data={mockProject}>
+            <Canvas>
+              <Controls />
+              <Toolbar />
+              <SaveIndicator />
+            </Canvas>
+          </ProjectProvider>
+          <Suspense fallback={null}>
+            <TopLeft id={projectId} />
+          </Suspense>
+          <Suspense fallback={null}>
+            <TopRight id={projectId} />
+          </Suspense>
+        </div>
+        <Reasoning />
+      </div>
+    );
+  }
+
   const profile = await currentUserProfile();
 
   if (!profile) {

@@ -3,8 +3,9 @@
 import { getSubscribedUser } from '@/lib/auth';
 import { database } from '@/lib/database';
 import { parseError } from '@/lib/error/parse';
-import { videoModels } from '@/lib/models/video';
+import { resolveReplicateSlug } from '@/lib/models/replicate-registry';
 import { trackCreditUsage } from '@/lib/stripe';
+import { isDev } from '@/lib/isDev';
 import { createSupabaseServer } from '@/lib/supabase/server';
 import { projects } from '@/schema';
 import type { Edge, Node, Viewport } from '@xyflow/react';
@@ -39,102 +40,142 @@ export const generateVideoAction = async ({
   try {
     const client = await createSupabaseServer();
     const user = await getSubscribedUser();
-    const model = videoModels[modelId];
-
-    if (!model) {
-      throw new Error('Model not found');
+    const slug = resolveReplicateSlug(modelId, "bytedance/seedance-1-lite");
+    
+    if (!slug) {
+      throw new Error('Invalid model key');
     }
 
-    const provider = model.providers[0];
-
-    let firstFrameImage = images.at(0)?.url;
-
-    if (firstFrameImage && process.env.NODE_ENV !== 'production') {
-      const response = await fetch(firstFrameImage);
-      const blob = await response.blob();
-      const uint8Array = new Uint8Array(await blob.arrayBuffer());
-      const base64 = Buffer.from(uint8Array).toString('base64');
-
-      firstFrameImage = `data:${images.at(0)?.type};base64,${base64}`;
+    // Handle image URL for development mode
+    let imageUrl = images.at(0)?.url;
+    if (isDev && imageUrl && imageUrl.startsWith('http://localhost:3000/')) {
+      console.log('[generateVideoAction] Dev mode: converting localhost image to base64');
+      try {
+        const response = await fetch(imageUrl);
+        const blob = await response.blob();
+        const arrayBuffer = await blob.arrayBuffer();
+        const base64 = Buffer.from(arrayBuffer).toString('base64');
+        imageUrl = `data:${blob.type};base64,${base64}`;
+      } catch (error) {
+        console.error('[generateVideoAction] Failed to convert image to base64:', error);
+        // If we can't convert the image, skip it
+        imageUrl = undefined;
+      }
     }
 
-    const url = await provider.model.generate({
-      prompt,
-      imagePrompt: firstFrameImage,
-      duration: 5,
-      aspectRatio: '16:9',
+    // Call the Replicate API
+    const response = await fetch(`http://localhost:3000/api/video/generate`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        prompt,
+        modelKey: modelId,
+        input: { 
+          image: imageUrl,
+          duration: 5,
+          aspect_ratio: '16:9'
+        },
+      }),
     });
 
-    const response = await fetch(url);
-    const arrayBuffer = await response.arrayBuffer();
-
-    await trackCreditUsage({
-      action: 'generate_video',
-      cost: provider.getCost({ duration: 5 }),
-    });
-
-    const blob = await client.storage
-      .from('files')
-      .upload(`${user.id}/${nanoid()}.mp4`, arrayBuffer, {
-        contentType: 'video/mp4',
-      });
-
-    if (blob.error) {
-      throw new Error(blob.error.message);
+    if (!response.ok) {
+      throw new Error('Failed to generate video');
     }
 
-    const { data: supabaseDownloadUrl } = client.storage
-      .from('files')
-      .getPublicUrl(blob.data.path);
-
-    if (!database) {
-      throw new Error('Database not initialized');
+    const result = await response.json();
+    
+    if (!result.ok) {
+      throw new Error(result.error || 'Video generation failed');
     }
 
-    const project = await database.query.projects.findFirst({
-      where: eq(projects.id, projectId),
-    });
+    const videoUrl = result.data.urls[0];
 
-    if (!project) {
-      throw new Error('Project not found');
+    let finalUrl: string;
+    
+    // In development mode, use the Replicate URL directly
+    if (isDev) {
+      console.log('[generateVideoAction] Dev mode: using Replicate URL directly');
+      finalUrl = videoUrl;
+    } else {
+      // Download the video from Replicate and upload to Supabase
+      const videoResponse = await fetch(videoUrl);
+      const arrayBuffer = await videoResponse.arrayBuffer();
+
+      const userId = 'user' in user ? user.user.id : user.id;
+      const blob = await client.storage
+        .from('files')
+        .upload(`${userId}/${nanoid()}.mp4`, arrayBuffer, {
+          contentType: 'video/mp4',
+        });
+
+      if (blob.error) {
+        throw new Error(blob.error.message);
+      }
+
+      const { data: supabaseDownloadUrl } = client.storage
+        .from('files')
+        .getPublicUrl(blob.data.path);
+
+      finalUrl = supabaseDownloadUrl.publicUrl;
     }
 
-    const content = project.content as {
-      nodes: Node[];
-      edges: Edge[];
-      viewport: Viewport;
-    };
-
-    const existingNode = content.nodes.find((n) => n.id === nodeId);
-
-    if (!existingNode) {
-      throw new Error('Node not found');
-    }
-
+    // Create the node data
     const newData = {
-      ...(existingNode.data ?? {}),
       updatedAt: new Date().toISOString(),
       generated: {
-        url: supabaseDownloadUrl.publicUrl,
+        url: finalUrl,
         type: 'video/mp4',
       },
     };
 
-    const updatedNodes = content.nodes.map((existingNode) => {
-      if (existingNode.id === nodeId) {
-        return {
-          ...existingNode,
-          data: newData,
-        };
+    // In development mode, skip database operations
+    if (isDev) {
+      console.log('[generateVideoAction] Dev mode: skipping database update');
+    } else {
+      if (!database) {
+        throw new Error('Database not initialized');
       }
 
-      return existingNode;
-    });
+      const project = await database.query.projects.findFirst({
+        where: eq(projects.id, projectId),
+      });
 
-    await database
-      .update(projects)
-      .set({ content: { ...content, nodes: updatedNodes } })
-      .where(eq(projects.id, projectId));
+      if (!project) {
+        throw new Error('Project not found');
+      }
+
+      const content = project.content as {
+        nodes: Node[];
+        edges: Edge[];
+        viewport: Viewport;
+      };
+
+      const existingNode = content.nodes.find((n) => n.id === nodeId);
+
+      if (!existingNode) {
+        throw new Error('Node not found');
+      }
+
+      const updatedNodes = content.nodes.map((existingNode) => {
+        if (existingNode.id === nodeId) {
+          return {
+            ...existingNode,
+            data: newData,
+          };
+        }
+
+        return existingNode;
+      });
+
+      if (database) {
+        await database
+          .update(projects)
+          .set({ content: { ...content, nodes: updatedNodes } })
+          .where(eq(projects.id, projectId));
+      }
+    }
 
     return {
       nodeData: newData,

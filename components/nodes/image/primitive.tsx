@@ -6,6 +6,7 @@ import { Dropzone } from '@/components/ui/kibo-ui/dropzone';
 import { Skeleton } from '@/components/ui/skeleton';
 import { handleError } from '@/lib/error/handle';
 import { uploadFile } from '@/lib/upload';
+import { isDev } from '@/lib/isDev';
 import { useProject } from '@/providers/project';
 import { useReactFlow } from '@xyflow/react';
 import { Loader2Icon } from 'lucide-react';
@@ -42,6 +43,10 @@ export const ImagePrimitive = ({
       setFiles(files);
       const [file] = files;
       const { url, type } = await uploadFile(file, 'files');
+      
+      console.log('[ImagePrimitive] Received URL from uploadFile:', url);
+      console.log('[ImagePrimitive] URL type:', typeof url);
+      console.log('[ImagePrimitive] URL starts with blob:', url.startsWith('blob:'));
 
       updateNodeData(id, {
         content: {
@@ -66,6 +71,43 @@ export const ImagePrimitive = ({
     }
   };
 
+  const renderImage = () => {
+    console.log('[ImagePrimitive] renderImage called');
+    console.log('[ImagePrimitive] data.content:', data.content);
+    console.log('[ImagePrimitive] isDev:', isDev);
+    
+    if (!data.content?.url) {
+      console.log('[ImagePrimitive] No content URL found');
+      return null;
+    }
+
+    console.log('[ImagePrimitive] Content URL:', data.content.url);
+    console.log('[ImagePrimitive] URL starts with blob:', data.content.url.startsWith('blob:'));
+
+    // In development mode, if it's an object URL (blob:), use regular img tag
+    if (isDev && data.content.url.startsWith('blob:')) {
+      console.log('[ImagePrimitive] Using img tag for blob URL');
+      return (
+        <img
+          src={data.content.url}
+          alt="Uploaded image"
+          className="h-auto w-full object-cover"
+        />
+      );
+    }
+
+    // Otherwise use Next.js Image component
+    return (
+      <Image
+        src={data.content.url}
+        alt="Image"
+        width={data.width ?? 1000}
+        height={data.height ?? 1000}
+        className="h-auto w-full"
+      />
+    );
+  };
+
   return (
     <NodeLayout id={id} data={data} type={type} title={title}>
       {isUploading && (
@@ -76,15 +118,7 @@ export const ImagePrimitive = ({
           />
         </Skeleton>
       )}
-      {!isUploading && data.content && (
-        <Image
-          src={data.content.url}
-          alt="Image"
-          width={data.width ?? 1000}
-          height={data.height ?? 1000}
-          className="h-auto w-full"
-        />
-      )}
+      {!isUploading && data.content && renderImage()}
       {!isUploading && !data.content && (
         <Dropzone
           maxSize={1024 * 1024 * 10}

@@ -6,6 +6,7 @@ import {
 } from '@/components/ui/kibo-ui/dropzone';
 import { handleError } from '@/lib/error/handle';
 import { uploadFile } from '@/lib/upload';
+import { isDev } from '@/lib/isDev';
 import { useReactFlow } from '@xyflow/react';
 import { FileIcon, Loader2Icon } from 'lucide-react';
 import { useState } from 'react';
@@ -20,32 +21,20 @@ const FilePreview = ({
   type,
   url,
 }: { name: string; type: string; url: string }) => (
-  <div className="flex flex-col gap-2">
-    <div className="flex items-center gap-2">
-      <FileIcon size={16} className="text-muted-foreground" />
-      <span className="truncate font-medium text-sm">{name}</span>
+  <div className="flex items-center gap-2 p-2">
+    <FileIcon className="size-4" />
+    <div className="flex-1 min-w-0">
+      <p className="text-sm font-medium truncate">{name}</p>
+      <p className="text-xs text-muted-foreground">{type}</p>
     </div>
-    {type === 'application/pdf' ? (
-      <div className="relative aspect-[3/4] w-full overflow-hidden rounded border">
-        <iframe
-          src={`${url}#view=FitH`}
-          className="absolute inset-0 h-full w-full"
-          title="PDF Preview"
-        />
-      </div>
-    ) : (
-      <div className="flex items-center justify-center rounded border p-4">
-        <a
-          href={url}
-          target="_blank"
-          rel="noopener noreferrer"
-          className="flex items-center gap-2 text-primary text-sm hover:underline"
-        >
-          <FileIcon size={16} />
-          <span>Download File</span>
-        </a>
-      </div>
-    )}
+    <a
+      href={url}
+      target="_blank"
+      rel="noopener noreferrer"
+      className="text-xs text-primary hover:underline"
+    >
+      View
+    </a>
   </div>
 );
 
@@ -69,18 +58,6 @@ export const FilePrimitive = ({
         throw new Error('No file selected');
       }
 
-      if (files.some((file) => file.type.startsWith('audio'))) {
-        throw new Error('Please use the audio node to upload audio files.');
-      }
-
-      if (files.some((file) => file.type.startsWith('video'))) {
-        throw new Error('Please use the video node to upload video files.');
-      }
-
-      if (files.some((file) => file.type.startsWith('image'))) {
-        throw new Error('Please use the image node to upload image files.');
-      }
-
       setIsUploading(true);
       setFiles(files);
       const [file] = files;
@@ -95,7 +72,7 @@ export const FilePrimitive = ({
         },
       });
     } catch (error) {
-      handleError('Error uploading video', error);
+      handleError('Error uploading file', error);
     } finally {
       setIsUploading(false);
     }

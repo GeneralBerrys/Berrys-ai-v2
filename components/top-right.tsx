@@ -7,6 +7,7 @@ import { Suspense } from 'react';
 import { CreditCounter } from './credits-counter';
 import { Menu } from './menu';
 import { Button } from './ui/button';
+import { isDev } from '@/lib/isDev';
 
 type TopRightProps = {
   id: string;
@@ -14,6 +15,40 @@ type TopRightProps = {
 
 export const TopRight = async ({ id }: TopRightProps) => {
   const profile = await currentUserProfile();
+  
+  // Dev mode: return mock top right UI
+  if (isDev || process.env.NODE_ENV === 'development') {
+    const mockProject = {
+      id: 'dev-project-123',
+      name: 'Dev Project',
+      userId: 'dev-user-123',
+      createdAt: new Date('2024-01-01T00:00:00Z'),
+      updatedAt: new Date('2024-01-01T00:00:00Z'),
+      content: { nodes: [], edges: [], viewport: { x: 0, y: 0, zoom: 1 } },
+      transcriptionModel: 'whisper-1',
+      visionModel: 'gpt-4o',
+      image: null,
+      members: [],
+      demoProject: false,
+    };
+
+    return (
+      <div className="absolute top-16 right-0 left-0 z-[50] m-4 flex items-center gap-2 sm:top-0 sm:left-auto">
+        <div className="flex items-center rounded-full border bg-card/90 p-3 drop-shadow-xs backdrop-blur-sm">
+          <Suspense
+            fallback={
+              <p className="text-muted-foreground text-sm">Loading...</p>
+            }
+          >
+            <CreditCounter />
+          </Suspense>
+        </div>
+        <div className="flex items-center rounded-full border bg-card/90 p-1 drop-shadow-xs backdrop-blur-sm">
+          <Menu />
+        </div>
+      </div>
+    );
+  }
   
   if (!database) {
     return null;

@@ -4,6 +4,7 @@
   "private": true,
   "scripts": {
     "dev": "concurrently -n \"Next.js,Supabase,Stripe\" \"next dev --turbopack\" \"npx supabase start\" \"stripe listen --forward-to localhost:3000/api/webhooks/stripe\"",
+    "dev:next": "next dev --turbopack",
     "bump-deps": "npx npm-check-updates -u && pnpm install",
     "bump-ui": "npx shadcn@latest add --all --overwrite",
     "build": "next build --turbopack",

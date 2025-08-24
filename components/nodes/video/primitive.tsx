@@ -7,6 +7,7 @@ import {
 import { Skeleton } from '@/components/ui/skeleton';
 import { handleError } from '@/lib/error/handle';
 import { uploadFile } from '@/lib/upload';
+import { isDev } from '@/lib/isDev';
 import { useReactFlow } from '@xyflow/react';
 import { Loader2Icon } from 'lucide-react';
 import { useState } from 'react';
@@ -55,6 +56,10 @@ export const VideoPrimitive = ({
     }
   };
 
+  // Get the video URL from either content (uploaded) or generated
+  const videoUrl = data.content?.url || data.generated?.url;
+  const videoType = data.content?.type || data.generated?.type;
+
   return (
     <NodeLayout id={id} data={data} type={type} title={title}>
       {isUploading && (
@@ -65,16 +70,17 @@ export const VideoPrimitive = ({
           />
         </Skeleton>
       )}
-      {!isUploading && data.content && (
+      {!isUploading && videoUrl && (
         <video
-          src={data.content.url}
+          src={videoUrl}
           className="h-auto w-full"
           autoPlay
           muted
           loop
+          controls
         />
       )}
-      {!isUploading && !data.content && (
+      {!isUploading && !videoUrl && (
         <Dropzone
           maxSize={1024 * 1024 * 10}
           minSize={1024}

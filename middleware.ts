@@ -1,7 +1,21 @@
 import { updateSession } from '@/lib/supabase/middleware';
+import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
 
 export async function middleware(request: NextRequest) {
+  // In development mode, bypass Supabase session checks and add CSP headers
+  if (process.env.NEXT_PUBLIC_DEV_MODE === 'true') {
+    const response = NextResponse.next();
+    
+    // Add CSP headers for development mode to allow eval()
+    response.headers.set(
+      'Content-Security-Policy',
+      "default-src 'self'; script-src 'self' 'unsafe-eval' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; img-src 'self' data: https: http:; font-src 'self' data:; connect-src 'self' https: http:;"
+    );
+    
+    return response;
+  }
+  
   return await updateSession(request);
 }
 

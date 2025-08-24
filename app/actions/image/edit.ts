@@ -3,8 +3,9 @@
 import { getSubscribedUser } from '@/lib/auth';
 import { database } from '@/lib/database';
 import { parseError } from '@/lib/error/parse';
-import { imageModels } from '@/lib/models/image';
+import { resolveReplicateSlug } from '@/lib/models/replicate-registry';
 import { trackCreditUsage } from '@/lib/stripe';
+import { isDev } from '@/lib/isDev';
 import { createSupabaseServer } from '@/lib/supabase/server';
 import { projects } from '@/schema';
 import type { Edge, Node, Viewport } from '@xyflow/react';
@@ -227,10 +228,15 @@ export const editImageAction = async ({
       return existingNode;
     });
 
-    await database
-      .update(projects)
-      .set({ content: { ...content, nodes: updatedNodes } })
-      .where(eq(projects.id, projectId));
+    // In development mode, skip database operations
+    if (isDev) {
+      console.log('[editImageAction] Dev mode: skipping database update');
+    } else {
+      await database
+        .update(projects)
+        .set({ content: { ...content, nodes: updatedNodes } })
+        .where(eq(projects.id, projectId));
+    }
 
     return {
       nodeData: newData,

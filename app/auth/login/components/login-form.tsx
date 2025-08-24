@@ -6,6 +6,7 @@ import { Label } from '@/components/ui/label';
 import { env } from '@/lib/env';
 import { handleError } from '@/lib/error/handle';
 import { createClient } from '@/lib/supabase/client';
+import { isDev } from '@/lib/isDev';
 import { Turnstile } from '@marsidev/react-turnstile';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
@@ -31,6 +32,41 @@ export const LoginForm = () => {
 
   const handleEmailLogin: FormEventHandler<HTMLFormElement> = async (event) => {
     event.preventDefault();
+    
+    console.log('Form submitted!');
+    
+    // Debug logging
+    console.log('Login attempt:', { 
+      email, 
+      isDev, 
+      devMode: process.env.NEXT_PUBLIC_DEV_MODE,
+      nodeEnv: process.env.NODE_ENV 
+    });
+    
+    // Dev mode bypass
+    if (isDev || process.env.NEXT_PUBLIC_DEV_MODE === 'true') {
+      console.log('Dev mode: bypassing authentication');
+      try {
+        await router.push('/projects');
+        console.log('Redirect successful');
+      } catch (error) {
+        console.error('Redirect failed:', error);
+      }
+      return;
+    }
+    
+    // Fallback: if we're in development and no Supabase, just redirect
+    if (process.env.NODE_ENV === 'development') {
+      console.log('Development mode: redirecting to projects');
+      try {
+        await router.push('/projects');
+        console.log('Redirect successful');
+      } catch (error) {
+        console.error('Redirect failed:', error);
+      }
+      return;
+    }
+    
     const supabase = createClient();
     setIsLoading(true);
 

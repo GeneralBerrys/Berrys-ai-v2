@@ -7,6 +7,7 @@ import { projects } from '@/schema';
 import { eq } from 'drizzle-orm';
 import type { Metadata } from 'next';
 import { redirect } from 'next/navigation';
+import { isDev } from '@/lib/isDev';
 
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
@@ -31,6 +32,26 @@ async function getProjectsSafe() {
 
     if (!profile?.onboardedAt) {
       return { redirect: '/welcome' as const };
+    }
+
+                // Dev mode: return mock project
+            if (isDev || process.env.NODE_ENV === 'development') {
+      console.log('[projects] Dev mode: returning mock project');
+      return {
+                        project: {
+                  id: 'dev-project-123',
+                  name: 'Dev Project',
+                  userId: 'dev-user-123',
+                  createdAt: new Date('2024-01-01T00:00:00Z'),
+                  updatedAt: new Date('2024-01-01T00:00:00Z'),
+                  content: { nodes: [], edges: [], viewport: { x: 0, y: 0, zoom: 1 } },
+                  transcriptionModel: 'whisper-1',
+                  visionModel: 'gpt-4o',
+                  image: null,
+                  members: [],
+                  demoProject: false,
+                }
+      };
     }
 
     // Check if database is available

@@ -1,7 +1,40 @@
 import { createServerClient } from '@supabase/ssr';
 import { cookies } from 'next/headers';
+import { isDev } from '@/lib/isDev';
 
 export async function createSupabaseServer() {
+  // In development mode, return a mock client
+  if (isDev) {
+    return {
+      auth: {
+        getUser: async () => ({ 
+          data: { 
+            user: { 
+              id: 'dev-user-123', 
+              email: 'dev@local.test',
+              user_metadata: {
+                name: 'Dev User',
+                avatar: null
+              }
+            } 
+          }, 
+          error: null 
+        }),
+      },
+      storage: {
+        from: () => ({
+          upload: async (path: string, file: any, options?: any) => ({ 
+            data: { path: `dev-user-123/${path}` }, 
+            error: null 
+          }),
+          getPublicUrl: (path: string) => ({ 
+            data: { publicUrl: `http://localhost:3000/${path}` } 
+          }),
+        }),
+      },
+    };
+  }
+
   const cookieStore = await cookies();
   
   return createServerClient(

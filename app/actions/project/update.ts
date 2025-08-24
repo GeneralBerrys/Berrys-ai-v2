@@ -5,6 +5,7 @@ import { database } from '@/lib/database';
 import { parseError } from '@/lib/error/parse';
 import { projects } from '@/schema';
 import { and, eq } from 'drizzle-orm';
+import { isDev } from '@/lib/isDev';
 
 export const updateProjectAction = async (
   projectId: string,
@@ -22,6 +23,12 @@ export const updateProjectAction = async (
 
     if (!user) {
       throw new Error('You need to be logged in to update a project!');
+    }
+
+    // In development mode, skip database operations
+    if (isDev) {
+      console.log('[updateProjectAction] Dev mode: skipping database update');
+      return { success: true };
     }
 
     if (!database) {

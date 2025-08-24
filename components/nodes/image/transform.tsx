@@ -7,7 +7,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { useAnalytics } from '@/hooks/use-analytics';
 import { download } from '@/lib/download';
 import { handleError } from '@/lib/error/handle';
-import { imageModels } from '@/lib/models/image';
+import { replicateImageModels } from '@/lib/models/replicate-ui';
 import { getImagesFromImageNodes, getTextFromTextNodes } from '@/lib/xyflow';
 import { useProject } from '@/providers/project';
 import { getIncomers, useReactFlow } from '@xyflow/react';
@@ -36,18 +36,6 @@ type ImageTransformProps = ImageNodeProps & {
   title: string;
 };
 
-const getDefaultModel = (models: typeof imageModels) => {
-  const defaultModel = Object.entries(models).find(
-    ([_, model]) => model.default
-  );
-
-  if (!defaultModel) {
-    throw new Error('No default model found');
-  }
-
-  return defaultModel[0];
-};
-
 export const ImageTransform = ({
   data,
   id,
@@ -60,10 +48,10 @@ export const ImageTransform = ({
   const hasIncomingImageNodes =
     getImagesFromImageNodes(getIncomers({ id }, getNodes(), getEdges()))
       .length > 0;
-  const modelId = data.model ?? getDefaultModel(imageModels);
+  const modelId = data.model ?? Object.keys(replicateImageModels)[0];
   const analytics = useAnalytics();
-  const selectedModel = imageModels[modelId];
-  const size = data.size ?? selectedModel?.sizes?.at(0);
+  const selectedModel = replicateImageModels[modelId as keyof typeof replicateImageModels];
+  const size = data.size ?? '1024x1024'; // Default size
 
   const handleGenerate = useCallback(async () => {
     if (loading || !project?.id) {
@@ -75,8 +63,9 @@ export const ImageTransform = ({
     const imageNodes = getImagesFromImageNodes(incomers);
 
     try {
-      if (!textNodes.length && !imageNodes.length) {
-        throw new Error('No input provided');
+      // Check if we have any input (text prompts or image inputs)
+      if (!textNodes.length && !imageNodes.length && !data.instructions) {
+        throw new Error('No input provided. Please connect a text node or add instructions.');
       }
 
       setLoading(true);
@@ -89,23 +78,33 @@ export const ImageTransform = ({
         instructionsLength: data.instructions?.length ?? 0,
       });
 
-      const response = imageNodes.length
-        ? await editImageAction({
-            images: imageNodes,
-            instructions: data.instructions,
-            nodeId: id,
-            projectId: project.id,
-            modelId,
-            size,
-          })
-        : await generateImageAction({
-            prompt: textNodes.join('\n'),
-            modelId,
-            instructions: data.instructions,
-            projectId: project.id,
-            nodeId: id,
-            size,
-          });
+      let response;
+
+      // If we have incoming image nodes, use edit mode
+      if (imageNodes.length) {
+        response = await editImageAction({
+          images: imageNodes,
+          instructions: data.instructions,
+          nodeId: id,
+          projectId: project.id,
+          modelId,
+          size,
+        });
+      } else {
+        // If we have text nodes or instructions, generate new image
+        const prompt = textNodes.length > 0 
+          ? textNodes.join('\n') 
+          : data.instructions || 'Generate a beautiful image';
+
+        response = await generateImageAction({
+          prompt,
+          modelId,
+          instructions: data.instructions,
+          projectId: project.id,
+          nodeId: id,
+          size,
+        });
+      }
 
       if ('error' in response) {
         throw new Error(response.error);
@@ -140,24 +139,12 @@ export const ImageTransform = ({
   ) => updateNodeData(id, { instructions: event.target.value });
 
   const toolbar = useMemo<ComponentProps<typeof NodeLayout>['toolbar']>(() => {
-    const availableModels = Object.fromEntries(
-      Object.entries(imageModels).map(([key, model]) => [
-        key,
-        {
-          ...model,
-          disabled: hasIncomingImageNodes
-            ? !model.supportsEdit
-            : model.disabled,
-        },
-      ])
-    );
-
     const items: ComponentProps<typeof NodeLayout>['toolbar'] = [
       {
         children: (
           <ModelSelector
             value={modelId}
-            options={availableModels}
+            options={replicateImageModels}
             id={id}
             className="w-[200px] rounded-full"
             onChange={(value) => updateNodeData(id, { model: value })}
@@ -166,19 +153,19 @@ export const ImageTransform = ({
       },
     ];
 
-    if (selectedModel?.sizes?.length) {
-      items.push({
-        children: (
-          <ImageSizeSelector
-            value={size ?? ''}
-            options={selectedModel?.sizes ?? []}
-            id={id}
-            className="w-[200px] rounded-full"
-            onChange={(value) => updateNodeData(id, { size: value })}
-          />
-        ),
-      });
-    }
+    // Add size selector with common image sizes
+    const commonSizes = ['1024x1024', '1024x1792', '1792x1024'];
+    items.push({
+      children: (
+        <ImageSizeSelector
+          value={size ?? '1024x1024'}
+          options={commonSizes}
+          id={id}
+          className="w-[200px] rounded-full"
+          onChange={(value) => updateNodeData(id, { size: value })}
+        />
+      ),
+    });
 
     items.push(
       loading
@@ -245,7 +232,6 @@ export const ImageTransform = ({
     hasIncomingImageNodes,
     id,
     updateNodeData,
-    selectedModel?.sizes,
     size,
     loading,
     data.generated,
@@ -299,7 +285,7 @@ export const ImageTransform = ({
       <Textarea
         value={data.instructions ?? ''}
         onChange={handleInstructionsChange}
-        placeholder="Enter instructions"
+        placeholder="Enter additional instructions (optional)"
         className="shrink-0 resize-none rounded-none border-none bg-transparent! shadow-none focus-visible:ring-0"
       />
     </NodeLayout>

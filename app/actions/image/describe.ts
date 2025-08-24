@@ -4,6 +4,7 @@ import { getSubscribedUser } from '@/lib/auth';
 import { database } from '@/lib/database';
 import { parseError } from '@/lib/error/parse';
 import { visionModels } from '@/lib/models/vision';
+import { isDev } from '@/lib/isDev';
 import { projects } from '@/schema';
 import { eq } from 'drizzle-orm';
 import OpenAI from 'openai';
@@ -21,6 +22,14 @@ export const describeAction = async (
 > => {
   try {
     await getSubscribedUser();
+
+    // In development mode, return a mock description
+    if (isDev) {
+      console.log('[describeAction] Dev mode: returning mock description');
+      return {
+        description: 'A beautiful image uploaded in development mode.',
+      };
+    }
 
     const openai = new OpenAI();
 

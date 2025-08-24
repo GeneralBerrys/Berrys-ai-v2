@@ -1,11 +1,26 @@
 import { nanoid } from 'nanoid';
 import { createClient } from './supabase/client';
+import { isDev } from './isDev';
 
 export const uploadFile = async (
   file: File,
   bucket: 'avatars' | 'files' | 'screenshots',
   filename?: string
 ) => {
+  console.log('[uploadFile] Function called with isDev:', isDev);
+  console.log('[uploadFile] File:', file.name, file.type);
+  
+  // In development mode, create an object URL for immediate display
+  if (isDev) {
+    console.log('[uploadFile] Dev mode: creating object URL');
+    const objectUrl = URL.createObjectURL(file);
+    console.log('[uploadFile] Created blob URL:', objectUrl);
+    return {
+      url: objectUrl,
+      type: file.type,
+    };
+  }
+
   const client = createClient();
   const { data } = await client.auth.getUser();
   const extension = file.name.split('.').pop();

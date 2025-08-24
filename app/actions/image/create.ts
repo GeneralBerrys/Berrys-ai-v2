@@ -3,8 +3,9 @@
 import { getSubscribedUser } from '@/lib/auth';
 import { database } from '@/lib/database';
 import { parseError } from '@/lib/error/parse';
-import { imageModels } from '@/lib/models/image';
+import { resolveReplicateSlug } from '@/lib/models/replicate-registry';
 import { visionModels } from '@/lib/models/vision';
+import { isDev } from '@/lib/isDev';
 import { trackCreditUsage } from '@/lib/stripe';
 import { createSupabaseServer } from '@/lib/supabase/server';
 import { projects } from '@/schema';
@@ -99,42 +100,19 @@ export const generateImageAction = async ({
   try {
     const client = await createSupabaseServer();
     const user = await getSubscribedUser();
-    const model = imageModels[modelId];
-
-    if (!model) {
-      throw new Error('Model not found');
+    const slug = resolveReplicateSlug(modelId, "black-forest-labs/flux-schnell");
+    
+    if (!slug) {
+      throw new Error('Invalid model key');
     }
 
-    let image: Experimental_GenerateImageResult['image'] | undefined;
-
-    const provider = model.providers[0];
-
-    if (provider.model.modelId === 'gpt-image-1') {
-      const generatedImageResponse = await generateGptImage1Image({
-        instructions,
-        prompt,
-        size,
-      });
-
-      await trackCreditUsage({
-        action: 'generate_image',
-        cost: provider.getCost({
-          ...generatedImageResponse.usage,
-          size,
-        }),
-      });
-
-      image = generatedImageResponse.image;
-    } else {
-      let aspectRatio: `${number}:${number}` | undefined;
-      if (size) {
-        const [width, height] = size.split('x').map(Number);
-        const divisor = gcd(width, height);
-        aspectRatio = `${width / divisor}:${height / divisor}`;
-      }
-
-      const generatedImageResponse = await generateImage({
-        model: provider.model,
+    // Call the Replicate API
+    const replicateResponse = await fetch(`http://localhost:3000/api/image/generate`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
         prompt: [
           'Generate an image based on the following instructions and context.',
           '---',
@@ -144,131 +122,153 @@ export const generateImageAction = async ({
           'Context:',
           prompt,
         ].join('\n'),
-        size: size as never,
-        aspectRatio,
-      });
-
-      await trackCreditUsage({
-        action: 'generate_image',
-        cost: provider.getCost({
-          size,
-        }),
-      });
-
-      image = generatedImageResponse.image;
-    }
-
-    let extension = image.mimeType.split('/').pop();
-
-    if (extension === 'jpeg') {
-      extension = 'jpg';
-    }
-
-    const name = `${nanoid()}.${extension}`;
-
-    const file: File = new File([image.uint8Array], name, {
-      type: image.mimeType,
+        modelKey: modelId,
+        options: { size },
+      }),
     });
 
-    const blob = await client.storage
-      .from('files')
-      .upload(`${user.id}/${name}`, file, {
-        contentType: file.type,
+    if (!replicateResponse.ok) {
+      throw new Error('Failed to generate image');
+    }
+
+    const result = await replicateResponse.json();
+    
+    if (!result.ok) {
+      throw new Error(result.error || 'Image generation failed');
+    }
+
+    const imageUrl = result.data.urls[0];
+
+    let url: string;
+    
+    // In development mode, use the Replicate URL directly
+    if (isDev) {
+      console.log('[generateImageAction] Dev mode: using Replicate URL directly');
+      url = imageUrl;
+    } else {
+      // Download the image from Replicate and upload to Supabase
+      const imageResponse = await fetch(imageUrl);
+      const imageBuffer = await imageResponse.arrayBuffer();
+      const imageBlob = new Blob([imageBuffer]);
+      
+      const extension = 'png'; // Replicate typically returns PNG
+      const name = `${nanoid()}.${extension}`;
+
+      const userId = 'user' in user ? user.user.id : user.id;
+      const blob = await client.storage
+        .from('files')
+        .upload(`${userId}/${name}`, imageBlob, {
+          contentType: 'image/png',
+        });
+
+      if (blob.error) {
+        throw new Error(blob.error.message);
+      }
+
+      const { data: downloadUrl } = client.storage
+        .from('files')
+        .getPublicUrl(blob.data.path);
+
+      url = downloadUrl.publicUrl;
+    }
+
+    let project: any = null;
+    
+    // In development mode, skip database operations
+    if (isDev) {
+      console.log('[generateImageAction] Dev mode: skipping database query');
+    } else {
+      if (!database) {
+        throw new Error('Database not initialized');
+      }
+
+      project = await database.query.projects.findFirst({
+        where: eq(projects.id, projectId),
       });
 
-    if (blob.error) {
-      throw new Error(blob.error.message);
+      if (!project) {
+        throw new Error('Project not found');
+      }
     }
 
-    const { data: downloadUrl } = client.storage
-      .from('files')
-      .getPublicUrl(blob.data.path);
+    let description = 'Generated image';
+    
+    // In development mode, skip vision model and database operations
+    if (isDev) {
+      console.log('[generateImageAction] Dev mode: skipping vision model and database operations');
+    } else {
+      const visionModel = visionModels[project.visionModel];
 
-    const url =
-      process.env.NODE_ENV === 'production'
-        ? downloadUrl.publicUrl
-        : `data:${image.mimeType};base64,${Buffer.from(image.uint8Array).toString('base64')}`;
+      if (!visionModel) {
+        throw new Error('Vision model not found');
+      }
 
-    if (!database) {
-      throw new Error('Database not initialized');
-    }
-
-    const project = await database.query.projects.findFirst({
-      where: eq(projects.id, projectId),
-    });
-
-    if (!project) {
-      throw new Error('Project not found');
-    }
-
-    const visionModel = visionModels[project.visionModel];
-
-    if (!visionModel) {
-      throw new Error('Vision model not found');
-    }
-
-    const openai = new OpenAI();
-    const response = await openai.chat.completions.create({
-      model: visionModel.providers[0].model.modelId,
-      messages: [
-        {
-          role: 'user',
-          content: [
-            { type: 'text', text: 'Describe this image.' },
-            {
-              type: 'image_url',
-              image_url: {
-                url,
+      const openai = new OpenAI();
+      const response = await openai.chat.completions.create({
+        model: visionModel.providers[0].model.modelId,
+        messages: [
+          {
+            role: 'user',
+            content: [
+              { type: 'text', text: 'Describe this image.' },
+              {
+                type: 'image_url',
+                image_url: {
+                  url,
+                },
               },
-            },
-          ],
-        },
-      ],
-    });
+            ],
+          },
+        ],
+      });
 
-    const description = response.choices.at(0)?.message.content;
-
-    if (!description) {
-      throw new Error('No description found');
+      description = response.choices.at(0)?.message.content || 'Generated image';
     }
 
-    const content = project.content as {
-      nodes: Node[];
-      edges: Edge[];
-      viewport: Viewport;
-    };
-
-    const existingNode = content.nodes.find((n) => n.id === nodeId);
-
-    if (!existingNode) {
-      throw new Error('Node not found');
-    }
-
+    // Create the node data
     const newData = {
-      ...(existingNode.data ?? {}),
       updatedAt: new Date().toISOString(),
       generated: {
-        url: downloadUrl.publicUrl,
-        type: image.mimeType,
+        url: url,
+        type: 'image/png',
       },
       description,
     };
 
-    const updatedNodes = content.nodes.map((existingNode) => {
-      if (existingNode.id === nodeId) {
-        return {
-          ...existingNode,
-          data: newData,
-        };
+    // In development mode, skip database operations
+    if (isDev) {
+      console.log('[generateImageAction] Dev mode: skipping database update');
+    } else {
+      const content = project.content as {
+        nodes: Node[];
+        edges: Edge[];
+        viewport: Viewport;
+      };
+
+      const existingNode = content.nodes.find((n) => n.id === nodeId);
+
+      if (!existingNode) {
+        throw new Error('Node not found');
       }
 
-      return existingNode;
-    });
+      const updatedNodes = content.nodes.map((existingNode) => {
+        if (existingNode.id === nodeId) {
+          return {
+            ...existingNode,
+            data: newData,
+          };
+        }
 
-    await database
-      .update(projects)
-      .set({ content: { ...content, nodes: updatedNodes } })
-      .where(eq(projects.id, projectId));
+        return existingNode;
+      });
+
+      if (database) {
+        await database
+          .update(projects)
+          .set({ content: { ...content, nodes: updatedNodes } })
+          .where(eq(projects.id, projectId));
+      }
+    }
 
     return {
       nodeData: newData,

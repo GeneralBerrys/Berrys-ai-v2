@@ -15,6 +15,16 @@ const nextConfig: NextConfig = {
         protocol: 'http',
         hostname: '127.0.0.1',
       },
+      {
+        protocol: 'http',
+        hostname: 'localhost',
+      },
+
+      // Replicate delivery for generated images
+      {
+        protocol: 'https',
+        hostname: 'replicate.delivery',
+      },
     ],
   },
 

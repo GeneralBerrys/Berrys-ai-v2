@@ -3,8 +3,9 @@
 import { getSubscribedUser } from '@/lib/auth';
 import { database } from '@/lib/database';
 import { parseError } from '@/lib/error/parse';
-import { speechModels } from '@/lib/models/speech';
+import { resolveReplicateSlug } from '@/lib/models/replicate-registry';
 import { trackCreditUsage } from '@/lib/stripe';
+import { isDev } from '@/lib/isDev';
 import { createSupabaseServer } from '@/lib/supabase/server';
 import { projects } from '@/schema';
 import type { Edge, Node, Viewport } from '@xyflow/react';
@@ -40,89 +41,121 @@ export const generateSpeechAction = async ({
     const client = await createSupabaseServer();
     const user = await getSubscribedUser();
 
-    const model = speechModels[modelId];
-
-    if (!model) {
-      throw new Error('Model not found');
+    const slug = resolveReplicateSlug(modelId, "minimax/speech-02-turbo");
+    
+    if (!slug) {
+      throw new Error('Invalid model key');
     }
 
-    const provider = model.providers[0];
-
-    const { audio } = await generateSpeech({
-      model: provider.model,
-      text,
-      outputFormat: 'mp3',
-      instructions,
-      voice,
+    // Call the Replicate API
+    const response = await fetch(`http://localhost:3000/api/audio/tts`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        text,
+        modelKey: modelId,
+        input: { voice },
+      }),
     });
 
-    await trackCreditUsage({
-      action: 'generate_speech',
-      cost: provider.getCost(text.length),
-    });
-
-    const blob = await client.storage
-      .from('files')
-      .upload(`${user.id}/${nanoid()}.mp3`, new Blob([audio.uint8Array]), {
-        contentType: audio.mimeType,
-      });
-
-    if (blob.error) {
-      throw new Error(blob.error.message);
+    if (!response.ok) {
+      throw new Error('Failed to generate audio');
     }
 
-    const { data: downloadUrl } = client.storage
-      .from('files')
-      .getPublicUrl(blob.data.path);
-
-    if (!database) {
-      throw new Error('Database not initialized');
+    const result = await response.json();
+    
+    if (!result.ok) {
+      throw new Error(result.error || 'Audio generation failed');
     }
 
-    const project = await database.query.projects.findFirst({
-      where: eq(projects.id, projectId),
-    });
+    const audioUrl = result.data.urls[0];
 
-    if (!project) {
-      throw new Error('Project not found');
+    let downloadUrl: { publicUrl: string };
+    
+    // In development mode, use the Replicate URL directly
+    if (isDev) {
+      console.log('[generateSpeechAction] Dev mode: using Replicate URL directly');
+      downloadUrl = { publicUrl: audioUrl };
+    } else {
+      // Download the audio from Replicate and upload to Supabase
+      const audioResponse = await fetch(audioUrl);
+      const audioBuffer = await audioResponse.arrayBuffer();
+      const audioBlob = new Blob([audioBuffer]);
+
+      const userId = 'user' in user ? user.user.id : user.id;
+      const blob = await client.storage
+        .from('files')
+        .upload(`${userId}/${nanoid()}.mp3`, audioBlob, {
+          contentType: 'audio/mp3',
+        });
+
+      if (blob.error) {
+        throw new Error(blob.error.message);
+      }
+
+      const { data: downloadUrlData } = client.storage
+        .from('files')
+        .getPublicUrl(blob.data.path);
+      downloadUrl = downloadUrlData;
     }
 
-    const content = project.content as {
-      nodes: Node[];
-      edges: Edge[];
-      viewport: Viewport;
-    };
-
-    const existingNode = content.nodes.find((n) => n.id === nodeId);
-
-    if (!existingNode) {
-      throw new Error('Node not found');
-    }
-
+    // Create the node data
     const newData = {
-      ...(existingNode.data ?? {}),
       updatedAt: new Date().toISOString(),
       generated: {
         url: downloadUrl.publicUrl,
-        type: audio.mimeType,
+        type: 'audio/mp3',
       },
     };
 
-    const updatedNodes = content.nodes.map((existingNode) => {
-      if (existingNode.id === nodeId) {
-        return {
-          ...existingNode,
-          data: newData,
-        };
+    // In development mode, skip database operations
+    if (isDev) {
+      console.log('[generateSpeechAction] Dev mode: skipping database update');
+    } else {
+      if (!database) {
+        throw new Error('Database not initialized');
       }
 
-      return existingNode;
-    });
+      const project = await database.query.projects.findFirst({
+        where: eq(projects.id, projectId),
+      });
 
-    await database
-      .update(projects)
-      .set({ content: { ...content, nodes: updatedNodes } })
-      .where(eq(projects.id, projectId));
+      if (!project) {
+        throw new Error('Project not found');
+      }
+
+      const content = project.content as {
+        nodes: Node[];
+        edges: Edge[];
+        viewport: Viewport;
+      };
+
+      const existingNode = content.nodes.find((n) => n.id === nodeId);
+
+      if (!existingNode) {
+        throw new Error('Node not found');
+      }
+
+      const updatedNodes = content.nodes.map((existingNode) => {
+        if (existingNode.id === nodeId) {
+          return {
+            ...existingNode,
+            data: newData,
+          };
+        }
+
+        return existingNode;
+      });
+
+      if (database) {
+        await database
+          .update(projects)
+          .set({ content: { ...content, nodes: updatedNodes } })
+          .where(eq(projects.id, projectId));
+      }
+    }
 
     return {
       nodeData: newData,

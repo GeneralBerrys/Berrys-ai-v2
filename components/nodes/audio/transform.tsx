@@ -6,7 +6,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { useAnalytics } from '@/hooks/use-analytics';
 import { download } from '@/lib/download';
 import { handleError } from '@/lib/error/handle';
-import { speechModels } from '@/lib/models/speech';
+import { replicateAudioModels } from '@/lib/models/replicate-ui';
 import {
   getDescriptionsFromImageNodes,
   getTextFromTextNodes,
@@ -31,17 +31,7 @@ type AudioTransformProps = AudioNodeProps & {
   title: string;
 };
 
-const getDefaultModel = (models: typeof speechModels) => {
-  const defaultModel = Object.entries(models).find(
-    ([_, model]) => model.default
-  );
 
-  if (!defaultModel) {
-    throw new Error('No default model found');
-  }
-
-  return defaultModel[0];
-};
 
 export const AudioTransform = ({
   data,
@@ -52,8 +42,8 @@ export const AudioTransform = ({
   const { updateNodeData, getNodes, getEdges } = useReactFlow();
   const [loading, setLoading] = useState(false);
   const project = useProject();
-  const modelId = data.model ?? getDefaultModel(speechModels);
-  const model = speechModels[modelId];
+  const modelId = data.model ?? Object.keys(replicateAudioModels)[0];
+  const model = replicateAudioModels[modelId as keyof typeof replicateAudioModels];
   const analytics = useAnalytics();
 
   const handleGenerate = async () => {
@@ -118,7 +108,7 @@ export const AudioTransform = ({
       children: (
         <ModelSelector
           value={modelId}
-          options={speechModels}
+          options={replicateAudioModels}
           key={id}
           className="w-[200px] rounded-full"
           onChange={(value) => updateNodeData(id, { model: value })}

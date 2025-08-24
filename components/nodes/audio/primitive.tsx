@@ -68,6 +68,10 @@ export const AudioPrimitive = ({
     }
   };
 
+  // Get the audio URL from either content (uploaded) or generated
+  const audioUrl = data.content?.url || data.generated?.url;
+  const audioType = data.content?.type || data.generated?.type;
+
   return (
     <NodeLayout id={id} data={data} type={type} title={title}>
       {isUploading && (
@@ -78,15 +82,15 @@ export const AudioPrimitive = ({
           />
         </Skeleton>
       )}
-      {!isUploading && data.content && (
+      {!isUploading && audioUrl && (
         // biome-ignore lint/a11y/useMediaCaption: <explanation>
         <audio
-          src={data.content.url}
+          src={audioUrl}
           controls
           className="w-full rounded-none"
         />
       )}
-      {!isUploading && !data.content && (
+      {!isUploading && !audioUrl && (
         <Dropzone
           maxSize={1024 * 1024 * 10}
           minSize={1024}
