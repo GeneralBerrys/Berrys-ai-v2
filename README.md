@@ -1,5 +1,3 @@
-![Berrys image](/app/opengraph-image.png)
-
 # Berrys
 
 A visual AI playground. Berrys is an open source canvas for building AI workflows. Drag, drop connect and run nodes to build your own workflows powered by various industry-leading AI models.
