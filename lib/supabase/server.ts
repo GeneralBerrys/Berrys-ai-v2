@@ -20,7 +20,26 @@ export async function createSupabaseServer() {
           }, 
           error: null 
         }),
+        setSession: async (_tokens: { access_token: string; refresh_token: string }) => ({
+          data: { session: null, user: { id: 'dev-user-123', email: 'dev@local.test', user_metadata: { name: 'Dev User', avatar: null } } },
+          error: null,
+        }),
+        verifyOtp: async (_params: any) => ({
+          data: { user: { id: 'dev-user-123' } },
+          error: null,
+        }),
+        exchangeCodeForSession: async (_code: string) => ({
+          data: { session: null, user: { id: 'dev-user-123', email: 'dev@local.test', user_metadata: { name: 'Dev User', avatar: null } } },
+          error: null,
+        }),
       },
+      from: () => ({
+        select: () => ({
+          order: () => ({
+            limit: async () => ({ data: [], error: null }),
+          }),
+        }),
+      }),
       storage: {
         from: () => ({
           upload: async (path: string, file: any, options?: any) => ({ 

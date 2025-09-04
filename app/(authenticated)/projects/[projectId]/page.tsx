@@ -47,6 +47,7 @@ const Project = async ({ params }: ProjectProps) => {
       image: null,
       members: [],
       demoProject: false,
+      welcomeProject: false,
     };
 
     return (

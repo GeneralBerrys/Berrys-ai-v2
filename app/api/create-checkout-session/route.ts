@@ -2,7 +2,7 @@ import Stripe from 'stripe'
 import { isDev } from '@/lib/isDev'
 import { NextResponse } from 'next/server'
 
-const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, { apiVersion: '2022-11-15' })
+const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, { apiVersion: '2025-05-28.basil' })
 
 export async function POST() {
   if (isDev) {

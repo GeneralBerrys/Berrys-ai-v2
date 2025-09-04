@@ -8,6 +8,7 @@ import { trackCreditUsage } from '@/lib/stripe';
 import { isDev } from '@/lib/isDev';
 import { createSupabaseServer } from '@/lib/supabase/server';
 import { projects } from '@/schema';
+import { imageModels } from '@/lib/models/image';
 import type { Edge, Node, Viewport } from '@xyflow/react';
 import {
   type Experimental_GenerateImageResult,
@@ -101,6 +102,10 @@ export const editImageAction = async ({
   try {
     const client = await createSupabaseServer();
     const user = await getSubscribedUser();
+    const userId = (user as any)?.id ?? (user as any)?.user?.id;
+    if (!userId) {
+      throw new Error('Unable to resolve user id');
+    }
 
     const model = imageModels[modelId];
 
@@ -171,7 +176,7 @@ export const editImageAction = async ({
 
     const blob = await client.storage
       .from('files')
-      .upload(`${user.id}/${nanoid()}`, bytes, {
+      .upload(`${userId}/${nanoid()}`, bytes, {
         contentType,
       });
 

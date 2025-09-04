@@ -23,6 +23,34 @@ export const createClient = () => {
           }, 
           error: null 
         }),
+        resetPasswordForEmail: async (_email: string, _options?: any) => ({
+          data: {},
+          error: null,
+        }),
+        signUp: async (_args: any) => ({
+          data: {
+            user: {
+              id: 'dev-user-123',
+              email: 'dev@local.test',
+              user_metadata: { name: 'Dev User', avatar: null },
+            },
+          },
+          error: null,
+        }),
+        updateUser: async (_args: any) => ({
+          data: {
+            user: {
+              id: 'dev-user-123',
+              email: 'dev@local.test',
+              user_metadata: { name: 'Dev User', avatar: null },
+            },
+          },
+          error: null,
+        }),
+        signInWithOAuth: async (_args: any) => ({
+          data: { url: 'http://localhost:3000/auth/callback?dev=true' },
+          error: null,
+        }),
         signInWithPassword: async () => ({ 
           data: { 
             user: { 
@@ -70,6 +98,34 @@ export const supabase = isDev ? {
         } 
       }, 
       error: null 
+    }),
+    resetPasswordForEmail: async (_email: string, _options?: any) => ({
+      data: {},
+      error: null,
+    }),
+    signUp: async (_args: any) => ({
+      data: {
+        user: {
+          id: 'dev-user-123',
+          email: 'dev@local.test',
+          user_metadata: { name: 'Dev User', avatar: null },
+        },
+      },
+      error: null,
+    }),
+    updateUser: async (_args: any) => ({
+      data: {
+        user: {
+          id: 'dev-user-123',
+          email: 'dev@local.test',
+          user_metadata: { name: 'Dev User', avatar: null },
+        },
+      },
+      error: null,
+    }),
+    signInWithOAuth: async (_args: any) => ({
+      data: { url: 'http://localhost:3000/auth/callback?dev=true' },
+      error: null,
     }),
     signInWithPassword: async () => ({ 
       data: { 
