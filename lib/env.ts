@@ -18,7 +18,7 @@ export const env = createEnv({
 
     // Supabase Integration
     POSTGRES_URL: z.string().url().optional(),
-    SUPABASE_SERVICE_ROLE_KEY: z.string().min(1),
+    SUPABASE_SERVICE_ROLE_KEY: z.string().min(1).optional(),
 
     // AI SDK (Optional - only required if using these providers)
     OPENAI_API_KEY: z.string().startsWith('sk-').optional(),
@@ -54,8 +54,8 @@ export const env = createEnv({
     NEXT_PUBLIC_DEV_MODE: z.string().optional(),
 
     // Supabase Integration (Required for core functionality)
-    NEXT_PUBLIC_SUPABASE_URL: z.string().url().min(1),
-    NEXT_PUBLIC_SUPABASE_ANON_KEY: z.string().min(1),
+    NEXT_PUBLIC_SUPABASE_URL: z.string().url().min(1).optional(),
+    NEXT_PUBLIC_SUPABASE_ANON_KEY: z.string().min(1).optional(),
   },
   runtimeEnv: {
     OPENAI_API_KEY: process.env.OPENAI_API_KEY,

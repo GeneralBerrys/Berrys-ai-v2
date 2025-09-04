@@ -1,8 +1,9 @@
 import { createBrowserClient } from '@supabase/ssr'
 import { isDev } from '@/lib/isDev'
 
-const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!
-const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
+const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
+const hasEnv = !!supabaseUrl && !!supabaseAnonKey
 
 // Create the SSR-compatible client for browser usage
 export const createClient = () => {
@@ -84,7 +85,7 @@ export const createClient = () => {
 }
 
 // Export a default client instance for direct usage
-export const supabase = isDev ? {
+export const supabase = (isDev || !hasEnv) ? {
   auth: {
     getUser: async () => ({ 
       data: { 
@@ -153,7 +154,7 @@ export const supabase = isDev ? {
       }),
     }),
   },
-} : createBrowserClient(supabaseUrl, supabaseAnonKey)
+} : createBrowserClient(supabaseUrl as string, supabaseAnonKey as string)
 
 export async function getCurrentUser() {
   if (isDev) {

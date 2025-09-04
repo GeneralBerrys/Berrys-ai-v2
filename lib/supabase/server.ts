@@ -3,8 +3,12 @@ import { cookies } from 'next/headers';
 import { isDev } from '@/lib/isDev';
 
 export async function createSupabaseServer() {
-  // In development mode, return a mock client
-  if (isDev) {
+  // In development mode or when env is missing (build-time/common in preview), return a mock client
+  const hasEnv =
+    !!process.env.NEXT_PUBLIC_SUPABASE_URL &&
+    !!process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+
+  if (isDev || !hasEnv) {
     return {
       auth: {
         getUser: async () => ({ 

@@ -17,6 +17,8 @@ export const metadata: Metadata = {
   description,
 };
 
+export const dynamic = 'force-dynamic';
+
 const Welcome = async () => {
   const user = await currentUser();
 
@@ -25,7 +27,12 @@ const Welcome = async () => {
   }
 
   if (!database) {
-    throw new Error('Database not initialized');
+    // In preview builds without DB, just show a static welcome page
+    return (
+      <div className="flex flex-col gap-4">
+        <WelcomeDemo title={title} description={description} />
+      </div>
+    );
   }
 
   let welcomeProject = await database.query.projects.findFirst({

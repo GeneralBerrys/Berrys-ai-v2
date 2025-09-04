@@ -8,6 +8,8 @@ export const metadata: Metadata = {
   description: 'Choose a plan to get access to all features.',
 };
 
+export const dynamic = 'force-dynamic';
+
 const PricingPage = async () => {
   const user = await currentUser();
   let currentPlan: 'hobby' | 'pro' | undefined;
