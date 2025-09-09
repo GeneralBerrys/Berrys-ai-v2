@@ -59,18 +59,6 @@ export const sampleNodes: Node[] = [
     origin: [0, 0.5],
   },
   {
-    id: 'LChjpwMpTwx4CaEypTsAr',
-    type: 'audio',
-    data: {
-      content: {
-        url: '/demo/delphiniums-primitive.mp3',
-        type: 'audio/mpeg',
-      },
-    },
-    position: { x: -256, y: 150 },
-    origin: [0, 0.5],
-  },
-  {
     id: 'lMrWEm_K9EbGledg2JzAY',
     type: 'video',
     data: {
@@ -159,12 +147,6 @@ export const sampleEdges: Edge[] = [
     target: '-UWhefN0_XOKHo7XbN2pY',
     type: 'animated',
     id: 'xy-edge__vgWgaLMHG6Y6MMwu_VF1D--UWhefN0_XOKHo7XbN2pY',
-  },
-  {
-    source: 'LChjpwMpTwx4CaEypTsAr',
-    target: 'wiHfpZJA_mGy1vQOULuOA',
-    type: 'animated',
-    id: 'xy-edge__LChjpwMpTwx4CaEypTsAr-wiHfpZJA_mGy1vQOULuOA',
   },
 ];
 
