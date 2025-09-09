@@ -1,7 +1,4 @@
 
-
-
-foc hgit
 import { Canvas } from '@/components/canvas';
 import { type Edge, type Node, ReactFlowProvider } from '@xyflow/react';
 
