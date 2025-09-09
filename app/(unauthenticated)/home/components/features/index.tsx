@@ -52,7 +52,7 @@ export const Features = () => (
 
         <p className="mx-auto max-w-lg text-center text-muted-foreground tracking-[-0.01rem] sm:text-lg">
           Berrys uses a drag and drop interface to build workflows, making it
-          super easy to create complex workflows with ease.
+          super easy to create complex marketing workflows with ease.
         </p>
       </div>
     </div>
@@ -94,8 +94,8 @@ export const Features = () => (
           <div className="grid gap-2">
             <h3 className="font-medium text-xl sm:text-2xl">Generate images</h3>
             <p className="text-muted-foreground text-sm sm:text-base">
-              Use models like DALL-E 3 to generate images from text prompts and
-              audio transcriptions, or gpt-image-1 to create variations of
+              Use models like Google's Nano Banana to generate images from text prompts
+              or Gpt-image-1 to create variations of
               existing images.
             </p>
           </div>
@@ -106,9 +106,9 @@ export const Features = () => (
             <VideoDemo />
           </div>
           <div className="grid gap-2">
-            <h3 className="font-medium text-xl sm:text-2xl">Create videos</h3>
+            <h3 className="font-medium text-xl sm:text-2xl">Generate videos</h3>
             <p className="text-muted-foreground text-sm sm:text-base">
-              Use models like Minimax's T2V-01-Director on Runway's Gen4 Turbo
+              Use models like Kling or Google's VEO 3
               to create videos from text prompts, or connect an image node to
               create a video from an existing image.
             </p>
@@ -137,10 +137,10 @@ export const Features = () => (
           </div>
           <div className="grid gap-2">
             <h3 className="font-medium text-xl sm:text-2xl">
-              Process and analyze files
+              Process and analyze files or images
             </h3>
             <p className="text-muted-foreground text-sm sm:text-base">
-              Use AI models to analyze, refactor, and optimize your code.
+              Use AI models to analyze, disect, and replicate visual assets.
               Connect file nodes to provide source files and text nodes to
               specify transformation instructions or requirements.
             </p>

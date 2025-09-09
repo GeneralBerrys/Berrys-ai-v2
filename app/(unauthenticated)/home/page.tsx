@@ -7,7 +7,7 @@ import { Providers } from './components/providers';
 export const metadata: Metadata = {
   title: 'A visual AI playground | Berrys',
   description:
-    'Berrys is a creative canvas for building AI workflows. Drag, drop connect and run nodes to build your own workflows powered by various industry-leading AI models.',
+    'Berrys is a creative canvas for building AI workflows. Drag, drop connect and run nodes to build your own marketing workflows powered by various industry-leading AI models.',
 };
 
 const buttons = [
